@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+@theme {
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-sans: "DM Sans", system-ui, sans-serif;
+  --font-mono: "Space Mono", monospace;
+  
+  --color-brand-teal: #1A7C6E;
+  --color-brand-coral: #E85D3A;
+  --color-brand-gold: #D4A843;
+  --color-brand-dark: #111827;
+  --color-brand-sand: #F5EFE6;
+  --color-brand-teal-light: #E8F4F2;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-brand-sand);
+  color: var(--color-brand-dark);
+}
+
+/* Custom styles for elements that need specific font styling */
+.font-headings {
+  font-family: var(--font-serif);
+}
+
+.font-prices {
+  font-family: var(--font-mono);
+}
