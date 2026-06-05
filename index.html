@@ -625,6 +625,175 @@
         }
       }
 
+      /* FEATURED TOURS SECTION STYLES */
+      .featured-tours-section {
+        background: var(--white);
+        padding: 80px 80px;
+        border-top: 1px solid var(--border);
+      }
+
+      .featured-tours-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
+      }
+
+      .featured-tours-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 30px;
+      }
+
+      .featured-tour-card {
+        background: var(--sand);
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        transition: all 0.3s ease;
+        position: relative;
+      }
+
+      .featured-tour-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 16px 36px rgba(0,0,0,0.08);
+        border-color: var(--teal);
+      }
+
+      .featured-tour-img-wrapper {
+        position: relative;
+        height: 220px;
+        width: 100%;
+        overflow: hidden;
+      }
+
+      .featured-tour-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+      }
+
+      .featured-tour-card:hover .featured-tour-img {
+        transform: scale(1.06);
+      }
+
+      .featured-tour-badge {
+        position: absolute;
+        top: 16px;
+        left: 16px;
+        background: var(--teal);
+        color: var(--white);
+        padding: 6px 14px;
+        border-radius: 99px;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        z-index: 2;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      }
+
+      .featured-tour-content {
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+      }
+
+      .featured-tour-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 22px;
+        font-weight: 900;
+        color: var(--dark);
+        margin-bottom: 8px;
+        line-height: 1.3;
+      }
+
+      .featured-tour-meta {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+        font-weight: 700;
+        font-size: 13px;
+        color: var(--ink-light);
+      }
+
+      .featured-tour-specs {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 24px 0;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        flex-grow: 1;
+      }
+
+      .featured-tour-spec-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: var(--dark);
+      }
+
+      .featured-tour-spec-icon {
+        color: var(--teal);
+        font-size: 14px;
+      }
+
+      .featured-tour-price-box {
+        border-top: 1px dashed var(--border);
+        padding-top: 18px;
+        margin-top: auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .featured-tour-price-label {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--ink-light);
+        display: block;
+        letter-spacing: 0.5px;
+      }
+
+      .featured-tour-price-value {
+        font-family: 'Space Mono', monospace;
+        font-size: 22px;
+        font-weight: 800;
+        color: var(--teal);
+      }
+
+      .featured-tour-cta-btn {
+        background: var(--teal);
+        color: var(--white);
+        border: none;
+        padding: 12px 20px;
+        border-radius: 14px;
+        font-weight: 700;
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-align: center;
+        display: block;
+        margin-top: 16px;
+        width: 100%;
+        text-decoration: none;
+      }
+
+      .featured-tour-cta-btn:hover {
+        background: #0F5548;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(26, 124, 110, 0.2);
+      }
+
       /* ACTIVITIES SECTION STYLES */
       .activities-section {
         background: var(--sand);
@@ -1694,6 +1863,10 @@
         .activity-grid {
           grid-template-columns: repeat(2, 1fr) !important;
         }
+        /* featured tours grid: 2 columns */
+        .featured-tours-grid {
+          grid-template-columns: repeat(2, 1fr) !important;
+        }
         /* how-it-works grid: 2 columns */
         .how-it-works, .how-it-works-grid, .steps-grid, #howSection > div {
           grid-template-columns: repeat(2, 1fr) !important;
@@ -1707,7 +1880,7 @@
       /* MOBILE BREAKPOINT: max-width 640px */
       @media (max-width: 640px) {
         /* section: padding 44px 16px */
-        section, .activities-section, .hotels-section, .bus-section, .lt-section, .destinations-section {
+        section, .activities-section, .hotels-section, .bus-section, .lt-section, .destinations-section, .featured-tours-section {
           padding: 44px 16px !important;
         }
         /* nav: padding 12px 16px */
@@ -1747,6 +1920,10 @@
         }
         /* testimonials grid: 1 column */
         .testimonials-grid, .testimonial-grid {
+          grid-template-columns: 1fr !important;
+        }
+        /* featured tours grid: 1 column */
+        .featured-tours-grid {
           grid-template-columns: 1fr !important;
         }
         /* footer grid: 1 column */
@@ -2511,8 +2688,154 @@
       </div>
     </header>
 
-    <!-- EMPTY SECTION PLACEHOLDERS -->
-    <div id="howSection"></div>
+    <!-- FEATURED SIGNATURE TOURS SECTION -->
+    <section id="featured-tours" class="featured-tours-section">
+      <div class="featured-tours-container">
+        <!-- Section Header with Primary Teal Label -->
+        <div class="section-header" style="margin-bottom: 44px; display: flex; flex-direction: column; align-items: center; text-align: center;">
+          <span class="header-label" style="color: #1A7C6E; text-transform: uppercase; font-weight: 800; letter-spacing: 1.5px; font-size: 11px;">Handcrafted Journeys</span>
+          <h2 class="header-title" style="color: var(--dark); font-family: 'Playfair Display', serif; font-size: 38px; font-weight: 900; margin-top: 4px;">Featured Signature Tours</h2>
+          <p style="color: var(--ink-light); max-width: 620px; margin-top: 10px; font-size: 15px; line-height: 1.6;">Avoid the planning hassle. Choose a popular curated signature tour to instantly load it into your cart, or use it as a custom base to design your own perfect getaway.</p>
+        </div>
+
+        <!-- Tours Grid -->
+        <div class="featured-tours-grid">
+          
+          <!-- Cox's Bazar Card -->
+          <article class="featured-tour-card" id="ft-card-coxs">
+            <span class="featured-tour-badge" style="background: #1A7C6E;">⭐ Best Beach Escape</span>
+            <div class="featured-tour-img-wrapper">
+              <img src="https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=600&q=80" alt="Cox's Bazar Parasailing and Beach" class="featured-tour-img" loading="lazy" referrerPolicy="no-referrer">
+            </div>
+            <div class="featured-tour-content">
+              <h3 class="featured-tour-title">Cox's Bazar Coastal Dream</h3>
+              <div class="featured-tour-meta">
+                <span>⏱️ 4 Days / 3 Nights</span>
+                <span>•</span>
+                <span>🏝️ Oceanfront Luxury</span>
+              </div>
+              <ul class="featured-tour-specs">
+                <li class="featured-tour-spec-item">
+                  <span class="featured-tour-spec-icon">✓</span>
+                  <span>Premium Parasailing & Marine Drive scenic sunset drive</span>
+                </li>
+                <li class="featured-tour-spec-item">
+                  <span class="featured-tour-spec-icon">✓</span>
+                  <span>Full-day cruise expedition to Saint Martin Island</span>
+                </li>
+                <li class="featured-tour-spec-item">
+                  <span class="featured-tour-spec-icon">✓</span>
+                  <span>Stay at Sea Pearl Beach & Resort (Ocean View Suite)</span>
+                </li>
+                <li class="featured-tour-spec-item">
+                  <span class="featured-tour-spec-icon">✓</span>
+                  <span>Surfing lesson at Inani Beach with a certified coach</span>
+                </li>
+              </ul>
+              <div class="featured-tour-price-box">
+                <div>
+                  <span class="featured-tour-price-label">All-Inclusive Price</span>
+                  <span style="font-size: 10px; color: var(--ink-light);">Per Traveler (Min 2)</span>
+                </div>
+                <div class="featured-tour-price-value">৳18,500</div>
+              </div>
+              <button class="featured-tour-cta-btn" onclick="loadFeaturedTour('coxs')">
+                ⚡ Customize & Load Tour
+              </button>
+            </div>
+          </article>
+
+          <!-- Bandarban Mountain Card -->
+          <article class="featured-tour-card" id="ft-card-bandarban">
+            <span class="featured-tour-badge" style="background: #E85D3A;">🔥 Adventure Choice</span>
+            <div class="featured-tour-img-wrapper">
+              <img src="https://images.unsplash.com/photo-1585123334904-845d60e97b29?auto=format&fit=crop&w=600&q=80" alt="Bandarban cloud mountains" class="featured-tour-img" loading="lazy" referrerPolicy="no-referrer">
+            </div>
+            <div class="featured-tour-content">
+              <h3 class="featured-tour-title">Bandarban Cloud Sanctuary</h3>
+              <div class="featured-tour-meta">
+                <span>⏱️ 3 Days / 2 Nights</span>
+                <span>•</span>
+                <span>⛅ High-Altitude Wilderness</span>
+              </div>
+              <ul class="featured-tour-specs">
+                <li class="featured-tour-spec-item">
+                  <span class="featured-tour-spec-icon">✓</span>
+                  <span>Nilgiri mountain peak sunrise & Chimbuk Hill Jeep Safari</span>
+                </li>
+                <li class="featured-tour-spec-item">
+                  <span class="featured-tour-spec-icon">✓</span>
+                  <span>Boga Lake crater lagoon trekking with local host guide</span>
+                </li>
+                <li class="featured-tour-spec-item">
+                  <span class="featured-tour-spec-icon">✓</span>
+                  <span>Premium lodging at the cloud-kissed Sairu Hill Resort</span>
+                </li>
+                <li class="featured-tour-spec-item">
+                  <span class="featured-tour-spec-icon">✓</span>
+                  <span>Ethnic tribal lunch feast and cultural experience</span>
+                </li>
+              </ul>
+              <div class="featured-tour-price-box">
+                <div>
+                  <span class="featured-tour-price-label">All-Inclusive Price</span>
+                  <span style="font-size: 10px; color: var(--ink-light);">Per Traveler (Min 2)</span>
+                </div>
+                <div class="featured-tour-price-value">৳12,500</div>
+              </div>
+              <button class="featured-tour-cta-btn" onclick="loadFeaturedTour('bandarban')">
+                ⚡ Customize & Load Tour
+              </button>
+            </div>
+          </article>
+
+          <!-- Rangamati Lake Card -->
+          <article class="featured-tour-card" id="ft-card-rangamati">
+            <span class="featured-tour-badge" style="background: #3B82F6;">⛵ Pure Comfort</span>
+            <div class="featured-tour-img-wrapper">
+              <img src="https://images.unsplash.com/photo-1608958416715-db87640248ad?auto=format&fit=crop&w=600&q=80" alt="Kaptai Lake hill landscapes" class="featured-tour-img" loading="lazy" referrerPolicy="no-referrer">
+            </div>
+            <div class="featured-tour-content">
+              <h3 class="featured-tour-title">Rangamati Lake Symphony</h3>
+              <div class="featured-tour-meta">
+                <span>⏱️ 3 Days / 2 Nights</span>
+                <span>•</span>
+                <span>🌿 Tranquil Nature Escapes</span>
+              </div>
+              <ul class="featured-tour-specs">
+                <li class="featured-tour-spec-item">
+                  <span class="featured-tour-spec-icon">✓</span>
+                  <span>Exclusive full-day Kaptai Lake private boat cruise</span>
+                </li>
+                <li class="featured-tour-spec-item">
+                  <span class="featured-tour-spec-icon">✓</span>
+                  <span>Shuvolong Waterfall cruise & Chakma tribal houses</span>
+                </li>
+                <li class="featured-tour-spec-item">
+                  <span class="featured-tour-spec-icon">✓</span>
+                  <span>Stay at premium Polwel Park & Resort lake cottages</span>
+                </li>
+                <li class="featured-tour-spec-item">
+                  <span class="featured-tour-spec-icon">✓</span>
+                  <span>Visit Buddhist Rajban Vihara and historic Rajbari castle</span>
+                </li>
+              </ul>
+              <div class="featured-tour-price-box">
+                <div>
+                  <span class="featured-tour-price-label">All-Inclusive Price</span>
+                  <span style="font-size: 10px; color: var(--ink-light);">Per Traveler (Min 2)</span>
+                </div>
+                <div class="featured-tour-price-value">৳9,800</div>
+              </div>
+              <button class="featured-tour-cta-btn" onclick="loadFeaturedTour('rangamati')">
+                ⚡ Customize & Load Tour
+              </button>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
     
     <!-- ACTIVITY EXPLORER SECTION -->
     <section id="activities" class="activities-section">
@@ -5219,6 +5542,128 @@
             }, 300);
           }
         }
+      }
+
+      function loadFeaturedTour(tourType) {
+        // Clear existing cart state safely
+        cart = [];
+        hotelCart = {};
+        ltCart = {};
+        busInCart = null;
+
+        if (tourType === 'coxs') {
+          // Add Cox's Bazar activities (e.g. 4, 6, 11)
+          const acts = [4, 6, 11];
+          acts.forEach(aid => {
+            const act = ACTIVITIES.find(a => a.id === aid);
+            if (act) cart.push(act);
+          });
+
+          // Add Sea Pearl Beach & Resort (Hotel id '1')
+          const hotel = HOTELS.find(h => h.id === '1' || h.id === 1);
+          if (hotel) {
+            const totalPrice = hotel.pricePerNight * nightsCount;
+            cart.push({
+              id: 'hotel-1',
+              name: hotel.name,
+              price: totalPrice,
+              cat: 'hotel',
+              icon: hotel.icon,
+              nights: nightsCount
+            });
+            hotelCart['1'] = true;
+          }
+        } else if (tourType === 'bandarban') {
+          // Add Bandarban activities (e.g. 32, 33, 37)
+          const acts = [32, 33, 37];
+          acts.forEach(aid => {
+            const act = ACTIVITIES.find(a => a.id === aid);
+            if (act) cart.push(act);
+          });
+
+          // Add Sairu Hill Resort (Hotel id '21')
+          const hotel = HOTELS.find(h => h.id === '21' || h.id === 21);
+          if (hotel) {
+            const totalPrice = hotel.pricePerNight * nightsCount;
+            cart.push({
+              id: 'hotel-21',
+              name: hotel.name,
+              price: totalPrice,
+              cat: 'hotel',
+              icon: hotel.icon,
+              nights: nightsCount
+            });
+            hotelCart['21'] = true;
+          }
+
+          // Add Chimbuk & Nilgiri mountain jeep (Local Transport lt6)
+          const lt = LOCAL_TRANSPORT.find(x => x.id === 'lt6');
+          if (lt) {
+            cart.push({
+              id: 'lt-lt6',
+              name: `${lt.name} (Local Transport)`,
+              price: lt.price,
+              cat: 'transport',
+              icon: lt.icon
+            });
+            ltCart['lt6'] = true;
+          }
+        } else if (tourType === 'rangamati') {
+          // Add Rangamati activities (e.g. 38, 39, 41)
+          const acts = [38, 39, 41];
+          acts.forEach(aid => {
+            const act = ACTIVITIES.find(a => a.id === aid);
+            if (act) cart.push(act);
+          });
+
+          // Add Polwel Park & Resort (Hotel id '31')
+          const hotel = HOTELS.find(h => h.id === '31' || h.id === 31);
+          if (hotel) {
+            const totalPrice = hotel.pricePerNight * nightsCount;
+            cart.push({
+              id: 'hotel-31',
+              name: hotel.name,
+              price: totalPrice,
+              cat: 'hotel',
+              icon: hotel.icon,
+              nights: nightsCount
+            });
+            hotelCart['31'] = true;
+          }
+
+          // Add Kaptai Lake boat cruise (Local Transport lt8)
+          const lt = LOCAL_TRANSPORT.find(x => x.id === 'lt8');
+          if (lt) {
+            cart.push({
+              id: 'lt-lt8',
+              name: `${lt.name} (Local Transport)`,
+              price: lt.price,
+              cat: 'transport',
+              icon: lt.icon
+            });
+            ltCart['lt8'] = true;
+          }
+        }
+
+        updateCartUI();
+        renderAll();
+
+        // Expands cart and reveals selected items
+        const panel = document.getElementById('cartNotif');
+        if (panel) {
+          panel.classList.add('visible');
+          setTimeout(() => {
+            panel.classList.add('expanded');
+          }, 200);
+        }
+
+        // Smooth scroll to activities / explorer section to begin customisation or review
+        const targetSection = document.getElementById('activities');
+        if (targetSection) {
+          targetSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        showToast(`Loaded signature tour successfully! Check your cart below to customise.`);
       }
 
       function toggleCartPanelExpansion() {

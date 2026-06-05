@@ -119,3 +119,13 @@ dependencies {
   "ksp"(libs.androidx.room.compiler)
   "ksp"(libs.moshi.kotlin.codegen)
 }
+
+tasks.register<Copy>("copyAssets") {
+  from("${rootDir}/index.html")
+  into("${projectDir}/src/main/assets")
+}
+
+tasks.named("preBuild") {
+  dependsOn("copyAssets")
+}
+
