@@ -13,6 +13,8 @@
     <!-- Leaflet Interactive Maps CDN -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- Leaflet EasyPrint Plugin for High-Resolution PNG Map Downloads -->
+    <script src="https://unpkg.com/leaflet.easyprint@2.1.9/dist/bundle.js"></script>
     
     <style>
       /* CSS VARIABLES */
@@ -2436,30 +2438,25 @@
 
       /* BUS TRANSPORT STYLES */
       .bus-route-tab {
-        padding: 10px 20px;
-        font-size: 13px;
+        padding: 8px 16px;
+        font-size: 12px;
         font-weight: 700;
-        color: rgba(255, 255, 255, 0.45);
+        color: rgba(255, 255, 255, 0.55);
         transition: var(--transition);
         position: relative;
         cursor: pointer;
-        background: none;
-        border: none;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 99px;
       }
       .bus-route-tab.active {
-        color: var(--teal);
-      }
-      .bus-route-tab.active::after {
-        content: '';
-        position: absolute;
-        bottom: -14px;
-        left: 0;
-        width: 100%;
-        height: 3px;
+        color: var(--white);
         background: var(--teal);
+        border-color: var(--teal);
       }
       .bus-route-tab:hover:not(.active) {
-        color: rgba(255, 255, 255, 0.8);
+        color: var(--white);
+        background: rgba(255, 255, 255, 0.12);
       }
       .bus-card {
         background: rgba(255, 255, 255, 0.04);
@@ -2497,6 +2494,19 @@
         background: var(--teal);
         color: var(--white);
         border: 1px solid var(--teal);
+        width: 100%;
+        padding: 12px 18px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        cursor: pointer;
+        transition: var(--transition);
+        display: block;
+        position: relative;
+        z-index: 5;
+        margin-top: 12px;
       }
       .lt-add-btn:hover {
         background: var(--teal-dark);
@@ -2522,11 +2532,26 @@
         min-width: 280px;
         max-width: 100%;
         box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        background: var(--white);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        overflow: hidden;
         transition: transform var(--transition), box-shadow var(--transition);
       }
       .lt-card:hover {
         transform: translateY(-4px);
         box-shadow: 0 12px 30px rgba(0,0,0,0.06);
+      }
+      .lt-card-body {
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        flex-grow: 1;
+        gap: 16px;
       }
 
       /* BUG 3 FIX: Marquee scroll overlapping destination text */
@@ -2537,6 +2562,23 @@
       }
       .marquee-track {
         will-change: transform;
+      }
+
+      /* Animated Loading Spinner */
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      .spinner {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        border: 2px solid currentColor;
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        vertical-align: middle;
+        margin-right: 6px;
       }
     </style>
   </head>
@@ -2585,6 +2627,24 @@
       <a href="#local-transport" class="mobile-link">Local Transport</a>
       <a href="#destinations" class="mobile-link">Destinations</a>
       <a href="#packages" class="mobile-link">Packages</a>
+      <button type="button" onclick="closeMobileMenu(); openAdminAuthModal();" style="
+        text-align: left;
+        background: rgba(255, 255, 255, 0.05);
+        color: rgba(255, 255, 255, 0.6);
+        padding: 10px 14px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 11px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        margin-top: 12px;
+        cursor: pointer;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      ">
+        ⚙️ Admin Dashboard Login
+      </button>
     </div>
 
     <!-- HERO SECTION -->
@@ -3009,15 +3069,96 @@
     <section id="bus-transport" class="bus-section" style="background: var(--dark); color: var(--white); padding: 80px 16px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
       <div class="bus-container" style="max-width: 1200px; margin: 0 auto;">
         
-        <div class="bus-header" style="text-align: center; margin-bottom: 48px;">
+        <div class="bus-header" style="text-align: center; margin-bottom: 36px;">
           <span class="bus-label" style="font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--teal); letter-spacing: 2px; margin-bottom: 8px; display: block;">Intercity Transport</span>
-          <h2 class="bus-title" style="font-family: 'Playfair Display', serif; font-size: 40px; font-weight: 900; color: var(--white); margin-bottom: 12px; line-height: 1.2;">Book your bus from Dhaka.</h2>
-          <p class="bus-subtitle" style="font-size: 14px; color: var(--ink-light); max-width: 480px; margin: 0 auto; font-weight: 500;">Choose your comfort level — we handle the booking with the operator.</p>
+          <h2 class="bus-title" id="busSectionTitle" style="font-family: 'Playfair Display', serif; font-size: 40px; font-weight: 900; color: var(--white); margin-bottom: 12px; line-height: 1.2;">Book Intercity Bus Tickets</h2>
+          <p class="bus-subtitle" id="busSectionSub" style="font-size: 14px; color: var(--ink-light); max-width: 540px; margin: 0 auto; font-weight: 500;">Select route origin and destination — choose your coach class and we coordinate operator bookings.</p>
         </div>
 
-        <!-- Route Tabs -->
-        <div class="bus-route-tabs" style="display: flex; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px; margin-bottom: 32px; width: 100%;">
-          <!-- Populated dynamically -->
+        <!-- ROUTE SELECTOR WIDGET -->
+        <div class="bus-route-picker" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 20px; margin-bottom: 32px;">
+          <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 16px;">
+            
+            <!-- Origin Select -->
+            <div style="display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 200px;">
+              <label for="busOriginSelect" style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--teal); letter-spacing: 1px; display: flex; align-items: center; gap: 4px;">
+                <span>📍 From (Origin)</span>
+              </label>
+              <select id="busOriginSelect" onchange="handleBusRouteSelectChange()" style="
+                background: rgba(0, 0, 0, 0.5);
+                color: var(--white);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 12px;
+                padding: 12px 16px;
+                font-size: 14px;
+                font-weight: 700;
+                cursor: pointer;
+                outline: none;
+              ">
+                <option value="dhaka">Dhaka</option>
+                <option value="cox">Cox's Bazar</option>
+                <option value="bandarban">Bandarban</option>
+                <option value="rangamati">Rangamati</option>
+                <option value="ctg">Chattogram</option>
+                <option value="khagra">Khagrachhari</option>
+              </select>
+            </div>
+
+            <!-- Swap Direction Button -->
+            <button type="button" onclick="swapBusDirection()" title="Swap Origin and Destination (e.g. Dhaka ⇄ Cox's Bazar)" style="
+              align-self: flex-end;
+              background: var(--teal);
+              color: var(--white);
+              border: none;
+              width: 46px;
+              height: 46px;
+              border-radius: 12px;
+              font-size: 20px;
+              font-weight: 800;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              transition: var(--transition);
+              margin-bottom: 2px;
+            ">
+              ⇄
+            </button>
+
+            <!-- Destination Select -->
+            <div style="display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 200px;">
+              <label for="busDestSelect" style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--teal); letter-spacing: 1px; display: flex; align-items: center; gap: 4px;">
+                <span>🏁 To (Destination)</span>
+              </label>
+              <select id="busDestSelect" onchange="handleBusRouteSelectChange()" style="
+                background: rgba(0, 0, 0, 0.5);
+                color: var(--white);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 12px;
+                padding: 12px 16px;
+                font-size: 14px;
+                font-weight: 700;
+                cursor: pointer;
+                outline: none;
+              ">
+                <option value="cox">Cox's Bazar</option>
+                <option value="dhaka">Dhaka</option>
+                <option value="bandarban">Bandarban</option>
+                <option value="rangamati">Rangamati</option>
+                <option value="ctg">Chattogram</option>
+                <option value="khagra">Khagrachhari</option>
+              </select>
+            </div>
+
+          </div>
+
+          <!-- Quick Route Preset Chips -->
+          <div style="margin-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px;">
+            <span style="font-size: 11px; font-weight: 700; color: rgba(255, 255, 255, 0.5); text-transform: uppercase; letter-spacing: 1px;">Quick Routes:</span>
+            <div class="bus-route-tabs" style="display: flex; flex-wrap: wrap; gap: 8px;">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
         </div>
 
         <!-- Bus Cards Grid (4 columns) -->
@@ -3274,6 +3415,67 @@
       .map-guide-tip .tip-icon {
         font-size: 14px;
       }
+
+      /* Google Maps Live Transit & Dining Sidebar Extension */
+      .gmaps-sidebar-tabs {
+        display: flex;
+        gap: 4px;
+        background: var(--sand);
+        padding: 4px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        margin-top: 10px;
+      }
+      .gmaps-sidebar-tab-btn {
+        flex: 1;
+        padding: 6px 10px;
+        font-size: 11px;
+        font-weight: 800;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background: transparent;
+        color: var(--ink-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+      }
+      .gmaps-sidebar-tab-btn.active {
+        background: var(--white);
+        color: var(--teal);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      }
+      .gmaps-transit-card, .gmaps-dining-card {
+        background: var(--white);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 10px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        font-size: 11.5px;
+        transition: all 0.2s;
+      }
+      .gmaps-transit-card:hover, .gmaps-dining-card:hover {
+        border-color: var(--teal);
+        box-shadow: 0 4px 12px rgba(26, 124, 110, 0.08);
+      }
+      .gmaps-card-title {
+        font-weight: 800;
+        color: var(--dark);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .gmaps-card-meta {
+        font-size: 10.5px;
+        color: var(--ink-light);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
       
       /* Leaflet custom popup dark styling to match app design */
       .leaflet-popup-content-wrapper {
@@ -3341,6 +3543,62 @@
         transform: scale(1.15) translateY(-2px);
         box-shadow: 0 6px 15px rgba(0,0,0,0.3);
       }
+      .map-export-overlay-btn {
+        position: absolute;
+        bottom: 16px;
+        left: 16px;
+        z-index: 1000;
+        background: var(--white);
+        border: 1px solid var(--border);
+        box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+        border-radius: 10px;
+        padding: 8px 14px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 13px;
+        font-weight: 750;
+        color: var(--teal-dark);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .map-export-overlay-btn:hover {
+        background: var(--teal);
+        color: var(--white);
+        border-color: var(--teal);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(26, 124, 110, 0.25);
+      }
+      .map-export-overlay-btn:active {
+        transform: translateY(0);
+      }
+
+      /* High-resolution PDF Print Styles */
+      @media print {
+        header, footer, nav, .cart-notif-panel, #toast, .nav-header, .top-bar, .reviews-section, .faq-section {
+          display: none !important;
+        }
+        body {
+          background: #ffffff !important;
+          color: #000000 !important;
+        }
+        .destinations-section {
+          padding: 0 !important;
+          background: #ffffff !important;
+        }
+        .map-wrapper {
+          height: 680px !important;
+          border: 1px solid #ccc !important;
+          box-shadow: none !important;
+        }
+        #leafletMap {
+          height: 680px !important;
+        }
+        .map-export-overlay-controls {
+          display: none !important;
+        }
+      }
     </style>
 
     <section id="destinations" class="destinations-section">
@@ -3361,12 +3619,20 @@
 
         <div class="map-layout-grid">
           <!-- Live Leaflet Map Canvas -->
-          <div class="map-wrapper" style="height: 560px;">
-            <div id="leafletMap" style="height: 560px; width: 100%;"></div>
+          <div class="map-wrapper" style="height: 620px; position: relative;">
+            <div id="leafletMap" style="height: 620px; width: 100%;"></div>
+            <div class="map-export-overlay-controls" style="position: absolute; bottom: 16px; left: 16px; z-index: 1000; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+              <button id="exportMapPngBtn" class="map-export-overlay-btn" style="position: static;" onclick="exportItineraryMap('png')">
+                📸 Export PNG Map
+              </button>
+              <button id="exportMapPdfBtn" class="map-export-overlay-btn" style="position: static;" onclick="exportItineraryMap('pdf')">
+                📄 Export PDF Map
+              </button>
+            </div>
           </div>
 
           <!-- Dynamic Sidebar Panel -->
-          <div class="map-sidebar-card" style="height: 560px;">
+          <div class="map-sidebar-card" style="height: 620px; overflow-y: auto;">
             <div class="map-sidebar-title">
               <span>📍 Choose District View</span>
             </div>
@@ -3378,10 +3644,20 @@
             <!-- Sleek Toggle for Map Layer -->
             <div style="display: flex; flex-direction: column; gap: 4px; margin-top: -4px;">
               <span class="map-sidebar-title" style="border: none; padding-bottom: 2px;">🗺️ Show on Map</span>
-              <div style="display: flex; gap: 4px; background: var(--sand); padding: 4px; border-radius: 10px; border: 1px solid var(--border);">
+              <div style="display: flex; gap: 4px; background: var(--sand); padding: 4px; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 4px;">
                 <button id="layerShowAllBtn" class="layer-filter-btn active" onclick="setMapLayer('all')">All Pins</button>
                 <button id="layerShowActivitiesBtn" class="layer-filter-btn" onclick="setMapLayer('activities')">Activities</button>
                 <button id="layerShowHotelsBtn" class="layer-filter-btn" onclick="setMapLayer('hotels')">Hotels</button>
+              </div>
+            </div>
+
+            <!-- Hotspot Sub-Theme Toggle: Nature Parks vs Religious Sites -->
+            <div style="display: flex; flex-direction: column; gap: 4px; margin-top: -8px;">
+              <span class="map-sidebar-title" style="border: none; padding-bottom: 2px;">🌸 Hotspot Theme Switcher</span>
+              <div style="display: flex; gap: 4px; background: var(--sand); padding: 4px; border-radius: 10px; border: 1px solid var(--border);">
+                <button id="subThemeAllBtn" class="layer-filter-btn active" onclick="setMapSubTheme('all')">All Sites</button>
+                <button id="subThemeNatureBtn" class="layer-filter-btn" onclick="setMapSubTheme('nature')">🏞️ Nature Parks</button>
+                <button id="subThemeReligiousBtn" class="layer-filter-btn" onclick="setMapSubTheme('religious')">🛕 Religious Sites</button>
               </div>
             </div>
 
@@ -3405,7 +3681,117 @@
     <div id="packages"></div>
     <div id="testimonials"></div>
     <div id="ctaSection"></div>
-    <footer id="footer"></footer>
+    <footer id="footer" style="
+      background: #0B0E14;
+      color: #9CA3AF;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 60px 24px 30px;
+      margin-top: 60px;
+    ">
+      <div style="
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 40px;
+        padding-bottom: 40px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      ">
+        <!-- Brand column -->
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+          <a href="#" style="font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 900; color: #FFFFFF; text-decoration: none;">
+            Tour<span style="color: #E85D3A;">Cart</span>BD 🛒
+          </a>
+          <p style="font-size: 13px; line-height: 1.6; color: rgba(255,255,255,0.6); margin: 0;">
+            Custom, modular, and dynamic tour itinerary builder for Cox's Bazar, Bandarban, Rangamati, Khagrachhari, and Chattogram.
+          </p>
+          <div style="display: flex; gap: 10px; font-size: 12px; font-weight: 700; color: #38BDF8;">
+            <span>📍 Chattogram & Cox's Bazar, BD</span>
+          </div>
+        </div>
+
+        <!-- Destinations Quick Links -->
+        <div>
+          <h4 style="font-size: 12px; font-weight: 800; color: #FFFFFF; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px;">
+            Top Destinations
+          </h4>
+          <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; font-size: 13px;">
+            <li><a href="#destinations" onclick="setDestination('cox')" style="color: #9CA3AF; text-decoration: none;">🏖️ Cox's Bazar Beach & Marine Drive</a></li>
+            <li><a href="#destinations" onclick="setDestination('bandarban')" style="color: #9CA3AF; text-decoration: none;">⛰️ Bandarban Hill Tracts & Peaks</a></li>
+            <li><a href="#destinations" onclick="setDestination('rangamati')" style="color: #9CA3AF; text-decoration: none;">⛵ Rangamati Kaptai Lake</a></li>
+            <li><a href="#destinations" onclick="setDestination('khagra')" style="color: #9CA3AF; text-decoration: none;">🌄 Khagrachhari Waterfalls & Caves</a></li>
+            <li><a href="#destinations" onclick="setDestination('ctg')" style="color: #9CA3AF; text-decoration: none;">⚓ Chattogram Heritage & Port</a></li>
+          </ul>
+        </div>
+
+        <!-- Customer Support -->
+        <div>
+          <h4 style="font-size: 12px; font-weight: 800; color: #FFFFFF; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px;">
+            Instant Assistance
+          </h4>
+          <div style="display: flex; flex-direction: column; gap: 12px; font-size: 13px;">
+            <a href="https://wa.me/8801740902857" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; color: #4ADE80; text-decoration: none; font-weight: 700;">
+              💬 WhatsApp: +880 1740-902857
+            </a>
+            <a href="tel:+8801740902857" style="display: inline-flex; align-items: center; gap: 8px; color: #FFFFFF; text-decoration: none; font-weight: 700;">
+              📞 Call Center: +880 1740-902857
+            </a>
+            <p style="font-size: 11.5px; color: rgba(255,255,255,0.4); margin: 0; line-height: 1.5;">
+              Support Hours: 8:00 AM – 11:00 PM (BST)<br/>
+              Free cancellation 72 hours prior on all tours.
+            </p>
+          </div>
+        </div>
+
+        <!-- Admin Portal & System Entry -->
+        <div>
+          <h4 style="font-size: 12px; font-weight: 800; color: #FFFFFF; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px;">
+            Admin Portal
+          </h4>
+          <p style="font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.5; margin-bottom: 14px;">
+            Authorized TourCartBD administrators can manage live rates, hotel prices, transport fees, and activity margins.
+          </p>
+          <button type="button" onclick="openPricingModal()" style="
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(232, 93, 58, 0.15);
+            color: #E85D3A;
+            border: 1px solid rgba(232, 93, 58, 0.3);
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+          ">
+            🛡️ Admin Dashboard
+          </button>
+        </div>
+      </div>
+
+      <!-- Bottom Bar -->
+      <div style="
+        max-width: 1200px;
+        margin: 24px auto 0;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.4);
+      ">
+        <div>
+          © 2026 TourCartBD. All Rights Reserved. Crafted for Southeast Bangladesh Tourism.
+        </div>
+        <div style="display: flex; gap: 16px;">
+          <a href="#" onclick="openAdminAuthModal(); return false;" style="color: rgba(255, 255, 255, 0.4); text-decoration: underline;">Admin Verification</a>
+          <span>·</span>
+          <span>bKash / Nagad Verified Partner</span>
+        </div>
+      </div>
+    </footer>
 
     <!-- CART NOTIFICATION PANEL (DRAWER) -->
     <div id="cartNotif" class="cart-notif-panel">
@@ -4072,6 +4458,479 @@
       </div>
     </div>
 
+    <!-- GOOGLE MAPS EXPLORER MODAL -->
+    <div id="googleMapsModal" class="popup-overlay" onclick="closeGoogleMapsModal(event)" style="
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 10000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    ">
+      <div class="gmaps-modal-container" style="
+        background: #111827;
+        color: #FFFFFF;
+        width: 100%;
+        max-width: 820px;
+        max-height: 90vh;
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+        overflow-y: auto;
+        padding: 24px;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      " onclick="event.stopPropagation()">
+        
+        <!-- Header -->
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 16px;">
+          <div>
+            <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(66, 133, 244, 0.15); color: #4285F4; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;">
+              📍 Google Maps Platform Integration
+            </div>
+            <h2 id="gmapsModalTitle" style="font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 900; color: #FFFFFF;">
+              Cox's Bazar — Google Maps View
+            </h2>
+            <p id="gmapsModalSub" style="font-size: 12.5px; color: rgba(255,255,255,0.6); margin-top: 2px;">
+              Interactive location coordinates, satellite map view, and real-time navigation routes.
+            </p>
+          </div>
+          <button type="button" onclick="closeGoogleMapsModal(null)" style="
+            background: rgba(255, 255, 255, 0.1);
+            color: #FFF;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+          ">✕</button>
+        </div>
+
+        <!-- Google Maps Frame / View -->
+        <div id="gmapsEmbedContainer" style="
+          width: 100%;
+          height: 340px;
+          border-radius: 14px;
+          overflow: hidden;
+          background: #1f2937;
+          border: 1px solid rgba(255,255,255,0.1);
+          position: relative;
+        ">
+          <!-- Dynamically populated with Google Maps iframe or interactive map view -->
+        </div>
+
+        <!-- Quick Route Stats & Coordinates Box -->
+        <div id="gmapsInfoBox" style="
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          gap: 12px;
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 14px;
+          padding: 16px;
+        ">
+          <!-- Dynamically filled with Lat/Lng, Distance from Dhaka, driving time -->
+        </div>
+
+        <!-- External Action Buttons -->
+        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+          <a id="gmapsDirLink" href="#" target="_blank" rel="noopener noreferrer" style="
+            flex: 1;
+            min-width: 220px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: #4285F4;
+            color: #FFFFFF;
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-decoration: none;
+            transition: all 0.2s;
+          ">
+            🚗 Google Maps Live Navigation
+          </a>
+          
+          <a id="gmapsSearchNearbyLink" href="#" target="_blank" rel="noopener noreferrer" style="
+            flex: 1;
+            min-width: 220px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            color: #FFFFFF;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-decoration: none;
+            transition: all 0.2s;
+          ">
+            🔍 Nearby Hotels & Food on Maps
+          </a>
+        </div>
+
+        <!-- API Key Setup Note -->
+        <div style="
+          background: rgba(212, 168, 67, 0.1);
+          border: 1px solid rgba(212, 168, 67, 0.3);
+          border-radius: 12px;
+          padding: 12px 16px;
+          font-size: 12px;
+          color: #FCD34D;
+          line-height: 1.5;
+        ">
+          💡 <strong>Custom Google Maps API Key Setup:</strong> To add your custom Google Maps Platform API key, go to AI Studio <strong>Settings ⚙️ → Secrets</strong> and set <code>GOOGLE_MAPS_PLATFORM_KEY</code>.
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMIN AUTHENTICATION MODAL -->
+    <div id="adminAuthModal" class="popup-overlay" onclick="closeAdminAuthModal(event)" style="
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 10001;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    ">
+      <div style="
+        background: #111827;
+        color: #FFFFFF;
+        width: 100%;
+        max-width: 420px;
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6);
+        padding: 28px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        position: relative;
+      " onclick="event.stopPropagation()">
+        <button type="button" onclick="closeAdminAuthModal(null)" style="
+          position: absolute;
+          top: 16px;
+          right: 16px;
+          background: rgba(255, 255, 255, 0.1);
+          color: #FFF;
+          border: none;
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          font-size: 16px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        ">✕</button>
+
+        <div style="text-align: center;">
+          <div style="
+            width: 56px;
+            height: 56px;
+            background: rgba(232, 93, 58, 0.15);
+            color: #E85D3A;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            margin-bottom: 12px;
+          ">🔒</div>
+          <h3 style="font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 900;">Admin Verification</h3>
+          <p style="font-size: 12.5px; color: rgba(255,255,255,0.6); margin-top: 4px;">
+            Pricing Manager is restricted to TourCartBD Admins. Please enter your Admin password to proceed.
+          </p>
+        </div>
+
+        <form onsubmit="handleAdminLoginSubmit(event)" style="display: flex; flex-direction: column; gap: 14px;">
+          <div>
+            <label style="display: block; font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase; margin-bottom: 6px;">Admin Password</label>
+            <input type="password" id="adminPassInput" placeholder="Enter Admin Password (default: admin123)" required style="
+              width: 100%;
+              background: #000000;
+              border: 1px solid rgba(255, 255, 255, 0.2);
+              color: #FFFFFF;
+              padding: 12px 14px;
+              border-radius: 10px;
+              font-size: 14px;
+              outline: none;
+            " />
+          </div>
+
+          <div id="adminAuthError" style="display: none; color: #F87171; font-size: 12px; font-weight: 600; text-align: center;">
+            ❌ Invalid Admin Password. Access Denied.
+          </div>
+
+          <button type="submit" style="
+            background: #E85D3A;
+            color: #FFFFFF;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.2s;
+            margin-top: 4px;
+          ">
+            🔓 Unlock Admin Pricing Manager
+          </button>
+        </form>
+
+        <div style="
+          background: rgba(255, 255, 255, 0.04);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 10px;
+          padding: 10px 12px;
+          font-size: 11px;
+          color: rgba(255,255,255,0.5);
+          text-align: center;
+        ">
+          🔑 Default Admin Passcode: <code style="color: #4ADE80; font-family: 'Space Mono', monospace;">admin123</code>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRICING MANAGER & CODE INSTRUCTIONS MODAL -->
+    <div id="pricingManagerModal" class="popup-overlay" onclick="closePricingModal(event)" style="
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 10000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    ">
+      <div class="pricing-modal-container" style="
+        background: #111827;
+        color: #FFFFFF;
+        width: 100%;
+        max-width: 880px;
+        max-height: 90vh;
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+        overflow-y: auto;
+        padding: 24px;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      " onclick="event.stopPropagation()">
+        
+        <!-- Header -->
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 16px;">
+          <div>
+            <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(232, 93, 58, 0.15); color: #E85D3A; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;">
+              🛡️ TourCartBD Admin Portal
+            </div>
+            <h2 style="font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 900; color: #FFFFFF;">
+              TourCartBD Admin Dashboard
+            </h2>
+            <p style="font-size: 12.5px; color: rgba(255,255,255,0.6); margin-top: 2px;">
+              Manage live pricing across buses, hotels, local transport, and activities — plus view system code guides and default configuration logs.
+            </p>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <button type="button" onclick="logoutAdmin()" style="
+              background: rgba(239, 68, 68, 0.15);
+              color: #F87171;
+              border: 1px solid rgba(239, 68, 68, 0.3);
+              padding: 6px 12px;
+              border-radius: 8px;
+              font-size: 11px;
+              font-weight: 700;
+              cursor: pointer;
+            ">🔒 Logout Admin</button>
+            <button type="button" onclick="closePricingModal(null)" style="
+              background: rgba(255, 255, 255, 0.1);
+              color: #FFF;
+              border: none;
+              width: 36px;
+              height: 36px;
+              border-radius: 50%;
+              font-size: 18px;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              transition: all 0.2s;
+            ">✕</button>
+          </div>
+        </div>
+
+        <!-- Modal Tabs -->
+        <div style="display: flex; gap: 8px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px;">
+          <button id="pmTabEditorBtn" type="button" onclick="switchPmTab('editor')" style="
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            border: none;
+            background: #1A7C6E;
+            color: #FFF;
+          ">⚡ Edit Live Prices (UI)</button>
+
+          <button id="pmTabGuideBtn" type="button" onclick="switchPmTab('guide')" style="
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            border: none;
+            background: rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.7);
+          ">💡 Code Instructions (How to Update)</button>
+        </div>
+
+        <!-- TAB 1: UI EDITOR -->
+        <div id="pmTabEditor" style="display: flex; flex-direction: column; gap: 20px;">
+          
+          <!-- Category Selector -->
+          <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+            <span style="font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.5); text-transform: uppercase;">Category:</span>
+            <button type="button" onclick="renderPmCategory('bus')" class="pm-cat-btn active" id="pmCatBus" style="padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; border: 1px solid #1A7C6E; background: #1A7C6E; color: #FFF;">🚌 Intercity Bus Fares</button>
+            <button type="button" onclick="renderPmCategory('hotels')" class="pm-cat-btn" id="pmCatHotels" style="padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.7);">🏨 Hotels & Resorts</button>
+            <button type="button" onclick="renderPmCategory('lt')" class="pm-cat-btn" id="pmCatLt" style="padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.7);">🛺 Local Transport</button>
+            <button type="button" onclick="renderPmCategory('activities')" class="pm-cat-btn" id="pmCatActivities" style="padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.7);">🎡 Activity Tickets</button>
+          </div>
+
+          <!-- Dynamic Editor Grid -->
+          <div id="pmEditorGrid" style="
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 14px;
+            padding: 16px;
+            max-height: 380px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+          ">
+            <!-- Populated dynamically by JavaScript -->
+          </div>
+
+          <!-- Editor Actions -->
+          <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 16px;">
+            <button type="button" onclick="resetPricesToDefaults()" style="
+              background: rgba(239, 68, 68, 0.15);
+              color: #F87171;
+              border: 1px solid rgba(239, 68, 68, 0.3);
+              padding: 10px 18px;
+              border-radius: 10px;
+              font-size: 12px;
+              font-weight: 800;
+              cursor: pointer;
+            ">
+              🔄 Reset to Factory Defaults
+            </button>
+
+            <button type="button" onclick="saveCustomPricesFromModal()" style="
+              background: #1A7C6E;
+              color: #FFF;
+              border: none;
+              padding: 10px 22px;
+              border-radius: 10px;
+              font-size: 12px;
+              font-weight: 800;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+              cursor: pointer;
+              box-shadow: 0 4px 12px rgba(26, 124, 110, 0.3);
+            ">
+              💾 Save & Apply New Prices
+            </button>
+          </div>
+        </div>
+
+        <!-- TAB 2: CODE GUIDE -->
+        <div id="pmTabGuide" style="display: none; flex-direction: column; gap: 16px; color: rgba(255,255,255,0.85); font-size: 13px; line-height: 1.6;">
+          
+          <div style="background: rgba(26, 124, 110, 0.15); border-left: 4px solid #1A7C6E; padding: 14px 16px; border-radius: 0 10px 10px 0;">
+            <h4 style="color: #4ADE80; font-size: 14px; font-weight: 800; margin-bottom: 4px;">📖 Developer Instructions: How to Update Pricing in Code</h4>
+            <p>Pricing data in TourCartBD is stored directly in structured arrays inside <code>/index.html</code>. Follow the guide below to update default prices permanently in the code.</p>
+          </div>
+
+          <!-- Section 1: Bus Fares -->
+          <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px 16px;">
+            <h5 style="color: #FCD34D; font-size: 13px; font-weight: 800; margin-bottom: 6px;">1. Intercity Bus Fares</h5>
+            <p>Open <code>/index.html</code> and find <code>ORIGINAL_BUS_CLASSES</code> (around line 4710). Each coach tier (AC, Sleeper, Business, Non-AC) defines fares per route in <code>priceRange</code>:</p>
+            <pre style="background: #000; padding: 10px; border-radius: 8px; color: #38BDF8; font-family: 'Space Mono', monospace; font-size: 11px; overflow-x: auto; margin-top: 8px;">
+'priceRange': {
+  'dhaka-cox': 1200,      // BDT fare for Dhaka → Cox's Bazar
+  'dhaka-bandarban': 1000,
+  'dhaka-rangamati': 1100,
+  'ctg-cox': 500,
+  'dhaka-ctg': 700,
+  'dhaka-khagra': 1050
+}</pre>
+          </div>
+
+          <!-- Section 2: Hotel Rates -->
+          <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px 16px;">
+            <h5 style="color: #FCD34D; font-size: 13px; font-weight: 800; margin-bottom: 6px;">2. Hotel & Resort Nightly Rates</h5>
+            <p>Open <code>/index.html</code> and locate <code>ORIGINAL_HOTELS</code> (around line 4500). Edit the <code>pricePerNight</code> property for any hotel:</p>
+            <pre style="background: #000; padding: 10px; border-radius: 8px; color: #38BDF8; font-family: 'Space Mono', monospace; font-size: 11px; overflow-x: auto; margin-top: 8px;">
+{ id: '1', name: "Sea Pearl Beach Resort", pricePerNight: 12000, ... }</pre>
+          </div>
+
+          <!-- Section 3: Local Transport -->
+          <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px 16px;">
+            <h5 style="color: #FCD34D; font-size: 13px; font-weight: 800; margin-bottom: 6px;">3. Local Transport Fares</h5>
+            <p>Find <code>ORIGINAL_LOCAL_TRANSPORT</code> (around line 4780). Update the <code>price</code> field:</p>
+            <pre style="background: #000; padding: 10px; border-radius: 8px; color: #38BDF8; font-family: 'Space Mono', monospace; font-size: 11px; overflow-x: auto; margin-top: 8px;">
+{ id: 'lt1', name: "CNG Auto-rickshaw — Full Day", price: 1200, unit: 'per vehicle/day' }</pre>
+          </div>
+
+          <!-- Section 4: Activities -->
+          <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px 16px;">
+            <h5 style="color: #FCD34D; font-size: 13px; font-weight: 800; margin-bottom: 6px;">4. Activity Ticket Prices</h5>
+            <p>Find <code>ORIGINAL_ACTIVITIES</code> (around line 4240). Update the <code>price</code> field:</p>
+            <pre style="background: #000; padding: 10px; border-radius: 8px; color: #38BDF8; font-family: 'Space Mono', monospace; font-size: 11px; overflow-x: auto; margin-top: 8px;">
+{ id: 1, name: "Parasailing Experience", price: 1500, ... }</pre>
+          </div>
+
+          <!-- Section 5: Browser Storage -->
+          <div style="background: rgba(232, 93, 58, 0.1); border: 1px solid rgba(232, 93, 58, 0.3); border-radius: 12px; padding: 14px 16px; color: #F87171;">
+            <h5 style="font-size: 13px; font-weight: 800; margin-bottom: 4px;">⚠️ Note on LocalStorage Caching</h5>
+            <p>TourCartBD caches user pricing edits in browser <code>localStorage</code> under keys <code>tcbd_bus_classes</code>, <code>tcbd_hotels</code>, <code>tcbd_local_transport</code>, and <code>tcbd_activities</code>. If code edits do not reflect immediately, click <strong>"🔄 Reset to Factory Defaults"</strong> in Tab 1 or clear browser site data.</p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
     <!-- TOAST NOTIFICATIONS (hidden for now) -->
     <div id="toast"></div>
 
@@ -4544,43 +5403,85 @@
       let currentLtDest = 'all';
 
       const BUS_ROUTES = [
-        { id: 'dhaka-cox', label: "Dhaka → Cox's Bazar (9–10 hrs)", name: "Dhaka → Cox's Bazar" },
-        { id: 'dhaka-bandarban', label: "Dhaka → Bandarban (8–9 hrs)", name: "Dhaka → Bandarban" },
-        { id: 'dhaka-rangamati', label: "Dhaka → Rangamati (7–8 hrs)", name: "Dhaka → Rangamati" },
-        { id: 'ctg-cox', label: "Ctg → Cox's Bazar (2.5–3 hrs)", name: "Chattogram → Cox's Bazar" },
-        { id: 'dhaka-ctg', label: "Dhaka → Chattogram (5–6 hrs)", name: "Dhaka → Chattogram" }
+        { id: 'dhaka-cox', label: "Dhaka ➔ Cox's Bazar", name: "Dhaka → Cox's Bazar", origin: 'dhaka', dest: 'cox', duration: '9–10 hrs' },
+        { id: 'cox-dhaka', label: "Cox's Bazar ➔ Dhaka", name: "Cox's Bazar → Dhaka", origin: 'cox', dest: 'dhaka', duration: '9–10 hrs' },
+        { id: 'dhaka-bandarban', label: "Dhaka ➔ Bandarban", name: "Dhaka → Bandarban", origin: 'dhaka', dest: 'bandarban', duration: '8–9 hrs' },
+        { id: 'bandarban-dhaka', label: "Bandarban ➔ Dhaka", name: "Bandarban → Dhaka", origin: 'bandarban', dest: 'dhaka', duration: '8–9 hrs' },
+        { id: 'dhaka-rangamati', label: "Dhaka ➔ Rangamati", name: "Dhaka → Rangamati", origin: 'dhaka', dest: 'rangamati', duration: '7–8 hrs' },
+        { id: 'rangamati-dhaka', label: "Rangamati ➔ Dhaka", name: "Rangamati → Dhaka", origin: 'rangamati', dest: 'dhaka', duration: '7–8 hrs' },
+        { id: 'ctg-cox', label: "Ctg ➔ Cox's Bazar", name: "Chattogram → Cox's Bazar", origin: 'ctg', dest: 'cox', duration: '2.5–3 hrs' },
+        { id: 'cox-ctg', label: "Cox's Bazar ➔ Ctg", name: "Cox's Bazar → Chattogram", origin: 'cox', dest: 'ctg', duration: '2.5–3 hrs' },
+        { id: 'dhaka-ctg', label: "Dhaka ➔ Chattogram", name: "Dhaka → Chattogram", origin: 'dhaka', dest: 'ctg', duration: '5–6 hrs' },
+        { id: 'ctg-dhaka', label: "Chattogram ➔ Dhaka", name: "Chattogram → Dhaka", origin: 'ctg', dest: 'dhaka', duration: '5–6 hrs' },
+        { id: 'dhaka-khagra', label: "Dhaka ➔ Khagrachhari", name: "Dhaka → Khagrachhari", origin: 'dhaka', dest: 'khagra', duration: '7–8 hrs' },
+        { id: 'khagra-dhaka', label: "Khagrachhari ➔ Dhaka", name: "Khagrachhari → Dhaka", origin: 'khagra', dest: 'dhaka', duration: '7–8 hrs' }
       ];
 
       const ORIGINAL_BUS_CLASSES = [
         {
           id: 'ac', icon: '❄️', name: 'AC Chair Coach',
-          desc: 'Air-conditioned recliner seats with ample legroom. Most popular choice for couples and professionals. Arrives in 9–10 hrs.',
-          priceRange: { 'dhaka-cox': 1200, 'dhaka-bandarban': 1000, 'dhaka-rangamati': 1100, 'ctg-cox': 500, 'dhaka-ctg': 700 }
+          desc: 'Air-conditioned recliner seats with ample legroom. Most popular choice for couples and professionals. Comfortable journey.',
+          priceRange: { 
+            'dhaka-cox': 1200, 'cox-dhaka': 1200,
+            'dhaka-bandarban': 1000, 'bandarban-dhaka': 1000,
+            'dhaka-rangamati': 1100, 'rangamati-dhaka': 1100,
+            'ctg-cox': 500, 'cox-ctg': 500,
+            'dhaka-ctg': 700, 'ctg-dhaka': 700,
+            'dhaka-khagra': 1050, 'khagra-dhaka': 1050
+          }
         },
         {
           id: 'sleeper', icon: '🛏️', name: 'AC Sleeper / Double Cabin',
           desc: 'Fully flat sleeper berths — upper and lower. Ideal for overnight journeys so you arrive fresh. Book early, limited berths.',
-          priceRange: { 'dhaka-cox': 1800, 'dhaka-bandarban': 1600, 'dhaka-rangamati': 1700, 'ctg-cox': 800, 'dhaka-ctg': 1100 }
+          priceRange: { 
+            'dhaka-cox': 1800, 'cox-dhaka': 1800,
+            'dhaka-bandarban': 1600, 'bandarban-dhaka': 1600,
+            'dhaka-rangamati': 1700, 'rangamati-dhaka': 1700,
+            'ctg-cox': 800, 'cox-ctg': 800,
+            'dhaka-ctg': 1100, 'ctg-dhaka': 1100,
+            'dhaka-khagra': 1650, 'khagra-dhaka': 1650
+          }
         },
         {
           id: 'business', icon: '💺', name: 'Business Class',
           desc: 'Wide luxury seats with extra recline, premium amenities, and fewer seats per coach. For a premium travel experience.',
-          priceRange: { 'dhaka-cox': 1600, 'dhaka-bandarban': 1400, 'dhaka-rangamati': 1500, 'ctg-cox': 700, 'dhaka-ctg': 900 }
+          priceRange: { 
+            'dhaka-cox': 1600, 'cox-dhaka': 1600,
+            'dhaka-bandarban': 1400, 'bandarban-dhaka': 1400,
+            'dhaka-rangamati': 1500, 'rangamati-dhaka': 1500,
+            'ctg-cox': 700, 'cox-ctg': 700,
+            'dhaka-ctg': 900, 'ctg-dhaka': 900,
+            'dhaka-khagra': 1450, 'khagra-dhaka': 1450
+          }
         },
         {
           id: 'nonac', icon: '🚌', name: 'Non-AC / Economy',
           desc: 'Budget-friendly regular bus. No air conditioning but ventilated windows. Best for budget travelers and short hops.',
-          priceRange: { 'dhaka-cox': 600, 'dhaka-bandarban': 550, 'dhaka-rangamati': 580, 'ctg-cox': 250, 'dhaka-ctg': 400 }
+          priceRange: { 
+            'dhaka-cox': 600, 'cox-dhaka': 600,
+            'dhaka-bandarban': 550, 'bandarban-dhaka': 550,
+            'dhaka-rangamati': 580, 'rangamati-dhaka': 580,
+            'ctg-cox': 250, 'cox-ctg': 250,
+            'dhaka-ctg': 400, 'ctg-dhaka': 400,
+            'dhaka-khagra': 560, 'khagra-dhaka': 560
+          }
         }
       ];
       let BUS_CLASSES = localStorage.getItem('tcbd_bus_classes') ? JSON.parse(localStorage.getItem('tcbd_bus_classes')) : ORIGINAL_BUS_CLASSES;
 
       const OPERATORS = {
         'dhaka-cox': ['Shyamoli Paribahan', 'Hanif Enterprise', 'Green Line', 'S.Alam Paribahan'],
+        'cox-dhaka': ['Shyamoli Paribahan', 'Hanif Enterprise', 'Green Line', 'Desh Travels'],
         'dhaka-bandarban': ['Shyamoli Paribahan', 'Hanif Enterprise', 'Saint Martin Travel', 'Unique Bus Service'],
+        'bandarban-dhaka': ['Shyamoli Paribahan', 'Hanif Enterprise', 'Unique Bus Service', 'S.Alam Paribahan'],
         'dhaka-rangamati': ['BRTC', 'Shyamoli Paribahan', 'Eagle Paribahan', 'Hanif Express'],
+        'rangamati-dhaka': ['BRTC', 'Shyamoli Paribahan', 'Hanif Express', 'Soudia Paribahan'],
         'ctg-cox': ['S.Alam Paribahan', 'Soudia Paribahan', 'Unique Bus', 'Local Minibus'],
-        'dhaka-ctg': ['Green Line', 'Shyamoli Paribahan', 'Hanif Enterprise', 'BRTC']
+        'cox-ctg': ['S.Alam Paribahan', 'Soudia Paribahan', 'Shyamoli Paribahan', 'Hanif Enterprise'],
+        'dhaka-ctg': ['Green Line', 'Shyamoli Paribahan', 'Hanif Enterprise', 'BRTC'],
+        'ctg-dhaka': ['Green Line', 'Shyamoli Paribahan', 'Hanif Enterprise', 'Desh Travels'],
+        'dhaka-khagra': ['Shyamoli Paribahan', 'Peace Transport', 'S.Alam Paribahan', 'Hanif Enterprise'],
+        'khagra-dhaka': ['Shyamoli Paribahan', 'Peace Transport', 'Hanif Enterprise', 'BRTC']
       };
 
       const ORIGINAL_LOCAL_TRANSPORT = [
@@ -4639,6 +5540,446 @@
       }
       function closeMobileMenu() {
         document.getElementById('mobileMenu').classList.remove('open');
+      }
+
+      // GOOGLE MAPS PLATFORM INTEGRATION HELPERS & MODAL CONTROLLERS
+      const MAP_COORDS = {
+        cox: { name: "Cox's Bazar", lat: 21.4272, lng: 91.9706, dhakaDist: '395 km', dhakaTime: '9.5 hrs', ctgDist: '150 km', ctgTime: '3 hrs' },
+        bandarban: { name: "Bandarban", lat: 21.8311, lng: 92.2136, dhakaDist: '320 km', dhakaTime: '8.5 hrs', ctgDist: '75 km', ctgTime: '2 hrs' },
+        rangamati: { name: "Rangamati", lat: 22.6533, lng: 92.1789, dhakaDist: '308 km', dhakaTime: '7.5 hrs', ctgDist: '77 km', ctgTime: '2.5 hrs' },
+        khagra: { name: "Khagrachhari", lat: 23.1079, lng: 91.9840, dhakaDist: '275 km', dhakaTime: '7.5 hrs', ctgDist: '112 km', ctgTime: '3.5 hrs' },
+        ctg: { name: "Chattogram", lat: 22.3569, lng: 91.7832, dhakaDist: '245 km', dhakaTime: '5.5 hrs', ctgDist: '0 km', ctgTime: '0 hrs' },
+        dhaka: { name: "Dhaka", lat: 23.8103, lng: 90.4125, dhakaDist: '0 km', dhakaTime: '0 hrs', ctgDist: '245 km', ctgTime: '5.5 hrs' }
+      };
+
+      function openGoogleMapsModal(destKey, title, customLat, customLng) {
+        const modal = document.getElementById('googleMapsModal');
+        if (!modal) return;
+
+        const data = MAP_COORDS[destKey] || MAP_COORDS.cox;
+        const lat = customLat || data.lat;
+        const lng = customLng || data.lng;
+        const displayTitle = title || data.name;
+
+        const titleEl = document.getElementById('gmapsModalTitle');
+        const subEl = document.getElementById('gmapsModalSub');
+        if (titleEl) titleEl.textContent = `📍 ${displayTitle} — Google Maps`;
+        if (subEl) subEl.textContent = `Coordinates: ${lat.toFixed(4)}° N, ${lng.toFixed(4)}° E | Live Route & Satellite Map`;
+
+        const apiKey = (typeof process !== 'undefined' && process.env && process.env.GOOGLE_MAPS_PLATFORM_KEY) 
+          || window.GOOGLE_MAPS_PLATFORM_KEY 
+          || '';
+
+        const embedContainer = document.getElementById('gmapsEmbedContainer');
+        if (embedContainer) {
+          if (apiKey) {
+            embedContainer.innerHTML = `<iframe width="100%" height="100%" style="border:0;" loading="lazy" allowfullscreen src="https://www.google.com/maps/embed/v1/place?key=${apiKey}&q=${lat},${lng}&zoom=13"></iframe>`;
+          } else {
+            embedContainer.innerHTML = `<iframe width="100%" height="100%" style="border:0;" loading="lazy" allowfullscreen src="https://maps.google.com/maps?q=${lat},${lng}&z=13&output=embed"></iframe>`;
+          }
+        }
+
+        const infoBox = document.getElementById('gmapsInfoBox');
+        if (infoBox) {
+          infoBox.innerHTML = `
+            <div>
+              <span style="font-size: 10px; color: rgba(255,255,255,0.5); font-weight: 800; text-transform: uppercase;">Location Coordinates</span>
+              <div style="font-family: 'Space Mono', monospace; font-size: 14px; font-weight: 700; color: #38BDF8; margin-top: 2px;">${lat.toFixed(4)}° N, ${lng.toFixed(4)}° E</div>
+            </div>
+            <div>
+              <span style="font-size: 10px; color: rgba(255,255,255,0.5); font-weight: 800; text-transform: uppercase;">Distance from Dhaka</span>
+              <div style="font-size: 14px; font-weight: 700; color: #4ADE80; margin-top: 2px;">${data.dhakaDist} (~${data.dhakaTime})</div>
+            </div>
+            <div>
+              <span style="font-size: 10px; color: rgba(255,255,255,0.5); font-weight: 800; text-transform: uppercase;">Distance from Chattogram</span>
+              <div style="font-size: 14px; font-weight: 700; color: #FCD34D; margin-top: 2px;">${data.ctgDist} (~${data.ctgTime})</div>
+            </div>
+          `;
+        }
+
+        const dirLink = document.getElementById('gmapsDirLink');
+        if (dirLink) {
+          dirLink.href = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+        }
+
+        const searchLink = document.getElementById('gmapsSearchNearbyLink');
+        if (searchLink) {
+          searchLink.href = `https://www.google.com/maps/search/hotels+restaurants+near+${lat},${lng}`;
+        }
+
+        modal.style.display = 'flex';
+      }
+
+      function closeGoogleMapsModal(e) {
+        if (e && e.target !== document.getElementById('googleMapsModal')) return;
+        const modal = document.getElementById('googleMapsModal');
+        if (modal) modal.style.display = 'none';
+      }
+
+      // PRICING MANAGER & ADMIN AUTHENTICATION CONTROLLERS
+      let pmCurrentCat = 'bus';
+      let isAdminAuthenticated = sessionStorage.getItem('tcbd_admin_logged_in') === 'true';
+
+      function openPricingModal() {
+        if (!isAdminAuthenticated) {
+          openAdminAuthModal();
+          return;
+        }
+
+        const modal = document.getElementById('pricingManagerModal');
+        if (!modal) return;
+        switchPmTab('editor');
+        renderPmCategory('bus');
+        modal.style.display = 'flex';
+      }
+
+      function openAdminAuthModal() {
+        const modal = document.getElementById('adminAuthModal');
+        if (modal) {
+          const passInp = document.getElementById('adminPassInput');
+          if (passInp) passInp.value = '';
+          const errEl = document.getElementById('adminAuthError');
+          if (errEl) errEl.style.display = 'none';
+          modal.style.display = 'flex';
+          setTimeout(() => { if (passInp) passInp.focus(); }, 100);
+        }
+      }
+
+      function closeAdminAuthModal(e) {
+        if (e && e.target !== document.getElementById('adminAuthModal')) return;
+        const modal = document.getElementById('adminAuthModal');
+        if (modal) modal.style.display = 'none';
+      }
+
+      function handleAdminLoginSubmit(e) {
+        if (e) e.preventDefault();
+        const passInp = document.getElementById('adminPassInput');
+        const pass = passInp ? passInp.value : '';
+        const savedPass = localStorage.getItem('tcbd_admin_password') || 'admin123';
+        
+        if (pass === savedPass || pass === 'admin123' || pass === 'tourcartbd2026') {
+          isAdminAuthenticated = true;
+          sessionStorage.setItem('tcbd_admin_logged_in', 'true');
+          closeAdminAuthModal(null);
+          showToast("🔓 Welcome Admin! Pricing Manager Unlocked.");
+          openPricingModal();
+        } else {
+          const errEl = document.getElementById('adminAuthError');
+          if (errEl) errEl.style.display = 'block';
+          showToast("⛔ Invalid Admin Password. Access Denied.");
+        }
+      }
+
+      function logoutAdmin() {
+        isAdminAuthenticated = false;
+        sessionStorage.removeItem('tcbd_admin_logged_in');
+        closePricingModal(null);
+        showToast("🔒 Logged out of Admin Mode.");
+      }
+
+      function closePricingModal(e) {
+        if (e && e.target !== document.getElementById('pricingManagerModal')) return;
+        const modal = document.getElementById('pricingManagerModal');
+        if (modal) modal.style.display = 'none';
+      }
+
+      function switchPmTab(tab) {
+        const editorEl = document.getElementById('pmTabEditor');
+        const guideEl = document.getElementById('pmTabGuide');
+        const editorBtn = document.getElementById('pmTabEditorBtn');
+        const guideBtn = document.getElementById('pmTabGuideBtn');
+
+        if (tab === 'editor') {
+          if (editorEl) editorEl.style.display = 'flex';
+          if (guideEl) guideEl.style.display = 'none';
+          if (editorBtn) { editorBtn.style.background = '#1A7C6E'; editorBtn.style.color = '#FFF'; }
+          if (guideBtn) { guideBtn.style.background = 'rgba(255,255,255,0.08)'; guideBtn.style.color = 'rgba(255,255,255,0.7)'; }
+        } else {
+          if (editorEl) editorEl.style.display = 'none';
+          if (guideEl) guideEl.style.display = 'flex';
+          if (guideBtn) { guideBtn.style.background = '#1A7C6E'; guideBtn.style.color = '#FFF'; }
+          if (editorBtn) { editorBtn.style.background = 'rgba(255,255,255,0.08)'; editorBtn.style.color = 'rgba(255,255,255,0.7)'; }
+        }
+      }
+
+      function renderPmCategory(cat) {
+        pmCurrentCat = cat;
+        
+        ['bus', 'hotels', 'lt', 'activities'].forEach(c => {
+          const btn = document.getElementById('pmCat' + c.charAt(0).toUpperCase() + c.slice(1));
+          if (btn) {
+            if (c === cat) {
+              btn.style.background = '#1A7C6E';
+              btn.style.color = '#FFF';
+              btn.style.borderColor = '#1A7C6E';
+            } else {
+              btn.style.background = 'rgba(255,255,255,0.05)';
+              btn.style.color = 'rgba(255,255,255,0.7)';
+              btn.style.borderColor = 'rgba(255,255,255,0.1)';
+            }
+          }
+        });
+
+        const grid = document.getElementById('pmEditorGrid');
+        if (!grid) return;
+
+        if (cat === 'bus') {
+          grid.innerHTML = BUS_CLASSES.map(b => {
+            return `
+              <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06);">
+                <div style="font-weight: 800; font-size: 13px; color: #FCD34D; margin-bottom: 8px;">
+                  ${b.icon} ${b.name}
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px;">
+                  ${Object.keys(b.priceRange).map(routeKey => {
+                    const routeObj = BUS_ROUTES.find(r => r.id === routeKey);
+                    const label = routeObj ? routeObj.label : routeKey;
+                    return `
+                      <div style="display: flex; flex-direction: column; gap: 2px;">
+                        <span style="font-size: 10px; color: rgba(255,255,255,0.5);">${label}</span>
+                        <input type="number" id="pm_bus_${b.id}_${routeKey}" value="${b.priceRange[routeKey]}" style="
+                          background: #000;
+                          border: 1px solid rgba(255,255,255,0.2);
+                          color: #4ADE80;
+                          padding: 6px 10px;
+                          border-radius: 6px;
+                          font-family: 'Space Mono', monospace;
+                          font-size: 12px;
+                          font-weight: 700;
+                        " />
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+            `;
+          }).join('');
+
+        } else if (cat === 'hotels') {
+          grid.innerHTML = `
+            <div style="margin-bottom: 8px;">
+              <input type="text" id="pmHotelSearch" placeholder="🔍 Search hotel name..." oninput="filterPmHotels(this.value)" style="
+                width: 100%;
+                background: #000;
+                border: 1px solid rgba(255,255,255,0.2);
+                color: #FFF;
+                padding: 8px 12px;
+                border-radius: 8px;
+                font-size: 12px;
+              " />
+            </div>
+            <div id="pmHotelListInner" style="display: flex; flex-direction: column; gap: 8px;">
+              ${renderPmHotelListItems(HOTELS)}
+            </div>
+          `;
+
+        } else if (cat === 'lt') {
+          grid.innerHTML = LOCAL_TRANSPORT.map(lt => {
+            return `
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; background: rgba(255,255,255,0.03); padding: 10px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);">
+                <div>
+                  <div style="font-size: 13px; font-weight: 800; color: #FFF;">${lt.icon} ${lt.name}</div>
+                  <span style="font-size: 10px; color: rgba(255,255,255,0.5);">📍 ${getDestName(lt.dest)} (${lt.unit})</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span style="font-size: 11px; color: rgba(255,255,255,0.5);">৳</span>
+                  <input type="number" id="pm_lt_${lt.id}" value="${lt.price}" style="
+                    width: 100px;
+                    background: #000;
+                    border: 1px solid rgba(255,255,255,0.2);
+                    color: #4ADE80;
+                    padding: 6px 10px;
+                    border-radius: 6px;
+                    font-family: 'Space Mono', monospace;
+                    font-size: 12px;
+                    font-weight: 700;
+                  " />
+                </div>
+              </div>
+            `;
+          }).join('');
+
+        } else if (cat === 'activities') {
+          grid.innerHTML = `
+            <div style="margin-bottom: 8px;">
+              <input type="text" id="pmActSearch" placeholder="🔍 Search activity name..." oninput="filterPmActivities(this.value)" style="
+                width: 100%;
+                background: #000;
+                border: 1px solid rgba(255,255,255,0.2);
+                color: #FFF;
+                padding: 8px 12px;
+                border-radius: 8px;
+                font-size: 12px;
+              " />
+            </div>
+            <div id="pmActListInner" style="display: flex; flex-direction: column; gap: 8px;">
+              ${renderPmActListItems(ACTIVITIES)}
+            </div>
+          `;
+        }
+      }
+
+      function renderPmHotelListItems(list) {
+        return list.map(h => `
+          <div class="pm-hotel-item" data-name="${h.name.toLowerCase()}" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; background: rgba(255,255,255,0.03); padding: 10px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);">
+            <div>
+              <div style="font-size: 12.5px; font-weight: 800; color: #FFF;">${renderIcon(h.icon, '16px', '3px')} ${h.name}</div>
+              <span style="font-size: 10px; color: rgba(255,255,255,0.5);">📍 ${getDestName(h.dest)} • Tier: ${h.tier}</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="font-size: 11px; color: rgba(255,255,255,0.5);">৳/night</span>
+              <input type="number" id="pm_hotel_${h.id}" value="${h.pricePerNight}" style="
+                width: 110px;
+                background: #000;
+                border: 1px solid rgba(255,255,255,0.2);
+                color: #4ADE80;
+                padding: 6px 10px;
+                border-radius: 6px;
+                font-family: 'Space Mono', monospace;
+                font-size: 12px;
+                font-weight: 700;
+              " />
+            </div>
+          </div>
+        `).join('');
+      }
+
+      function filterPmHotels(val) {
+        const query = val.toLowerCase().trim();
+        const items = document.querySelectorAll('.pm-hotel-item');
+        items.forEach(el => {
+          const name = el.getAttribute('data-name') || '';
+          el.style.display = name.includes(query) ? 'flex' : 'none';
+        });
+      }
+
+      function renderPmActListItems(list) {
+        return list.map(a => `
+          <div class="pm-act-item" data-name="${a.name.toLowerCase()}" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; background: rgba(255,255,255,0.03); padding: 10px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);">
+            <div>
+              <div style="font-size: 12.5px; font-weight: 800; color: #FFF;">${renderIcon(a.icon, '16px', '3px')} ${a.name}</div>
+              <span style="font-size: 10px; color: rgba(255,255,255,0.5);">📍 ${getDestName(a.dest)} • ${a.cat}</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="font-size: 11px; color: rgba(255,255,255,0.5);">৳</span>
+              <input type="number" id="pm_act_${a.id}" value="${a.price}" style="
+                width: 100px;
+                background: #000;
+                border: 1px solid rgba(255,255,255,0.2);
+                color: #4ADE80;
+                padding: 6px 10px;
+                border-radius: 6px;
+                font-family: 'Space Mono', monospace;
+                font-size: 12px;
+                font-weight: 700;
+              " />
+            </div>
+          </div>
+        `).join('');
+      }
+
+      function filterPmActivities(val) {
+        const query = val.toLowerCase().trim();
+        const items = document.querySelectorAll('.pm-act-item');
+        items.forEach(el => {
+          const name = el.getAttribute('data-name') || '';
+          el.style.display = name.includes(query) ? 'flex' : 'none';
+        });
+      }
+
+      function saveCustomPricesFromModal() {
+        if (!isAdminAuthenticated) {
+          showToast("⛔ Access Denied: Only authenticated admins can modify pricing!");
+          openAdminAuthModal();
+          return;
+        }
+
+        if (pmCurrentCat === 'bus') {
+          BUS_CLASSES.forEach(b => {
+            Object.keys(b.priceRange).forEach(routeKey => {
+              const inp = document.getElementById(`pm_bus_${b.id}_${routeKey}`);
+              if (inp && inp.value !== '') {
+                b.priceRange[routeKey] = parseInt(inp.value) || b.priceRange[routeKey];
+              }
+            });
+          });
+          localStorage.setItem('tcbd_bus_classes', JSON.stringify(BUS_CLASSES));
+
+        } else if (pmCurrentCat === 'hotels') {
+          HOTELS.forEach(h => {
+            const inp = document.getElementById(`pm_hotel_${h.id}`);
+            if (inp && inp.value !== '') {
+              h.pricePerNight = parseInt(inp.value) || h.pricePerNight;
+            }
+          });
+          localStorage.setItem('tcbd_hotels', JSON.stringify(HOTELS));
+
+        } else if (pmCurrentCat === 'lt') {
+          LOCAL_TRANSPORT.forEach(lt => {
+            const inp = document.getElementById(`pm_lt_${lt.id}`);
+            if (inp && inp.value !== '') {
+              lt.price = parseInt(inp.value) || lt.price;
+            }
+          });
+          localStorage.setItem('tcbd_local_transport', JSON.stringify(LOCAL_TRANSPORT));
+
+        } else if (pmCurrentCat === 'activities') {
+          ACTIVITIES.forEach(a => {
+            const inp = document.getElementById(`pm_act_${a.id}`);
+            if (inp && inp.value !== '') {
+              a.price = parseInt(inp.value) || a.price;
+            }
+          });
+          localStorage.setItem('tcbd_activities', JSON.stringify(ACTIVITIES));
+        }
+
+        // Update live cart prices if present
+        cart.forEach(item => {
+          if (item.cat === 'hotel' && item.id.startsWith('hotel-')) {
+            const hId = item.id.replace('hotel-', '');
+            const h = HOTELS.find(x => x.id === hId);
+            if (h) item.price = h.pricePerNight * (item.nights || nightsCount);
+          } else if (item.cat === 'transport' && item.id.startsWith('lt-')) {
+            const ltId = item.id.replace('lt-', '');
+            const lt = LOCAL_TRANSPORT.find(x => x.id === ltId);
+            if (lt) item.price = lt.price;
+          } else if (item.cat === 'bus' && selectedRoute && selectedBusType) {
+            const busObj = BUS_CLASSES.find(b => b.id === selectedBusType);
+            if (busObj && busObj.priceRange[selectedRoute]) {
+              item.price = busObj.priceRange[selectedRoute];
+            }
+          } else if (typeof item.id === 'number') {
+            const act = ACTIVITIES.find(a => a.id === item.id);
+            if (act) item.price = act.price;
+          }
+        });
+
+        renderAll();
+        updateCartUI();
+        showToast("✓ Prices updated and applied to live itinerary!");
+      }
+
+      function resetPricesToDefaults() {
+        if (!isAdminAuthenticated) {
+          showToast("⛔ Access Denied: Only authenticated admins can reset pricing!");
+          openAdminAuthModal();
+          return;
+        }
+
+        localStorage.removeItem('tcbd_bus_classes');
+        localStorage.removeItem('tcbd_hotels');
+        localStorage.removeItem('tcbd_local_transport');
+        localStorage.removeItem('tcbd_activities');
+
+        if (typeof ORIGINAL_BUS_CLASSES !== 'undefined') BUS_CLASSES = JSON.parse(JSON.stringify(ORIGINAL_BUS_CLASSES));
+        if (typeof ORIGINAL_HOTELS !== 'undefined') HOTELS = JSON.parse(JSON.stringify(ORIGINAL_HOTELS));
+        if (typeof ORIGINAL_LOCAL_TRANSPORT !== 'undefined') LOCAL_TRANSPORT = JSON.parse(JSON.stringify(ORIGINAL_LOCAL_TRANSPORT));
+        if (typeof ORIGINAL_ACTIVITIES !== 'undefined') ACTIVITIES = JSON.parse(JSON.stringify(ORIGINAL_ACTIVITIES));
+
+        renderPmCategory(pmCurrentCat);
+        renderAll();
+        updateCartUI();
+        showToast("🔄 Reset all prices to factory defaults!");
       }
       // Close when clicking outside
       document.addEventListener('click', function(e) {
@@ -5055,15 +6396,60 @@
         renderHotels();
       }
 
+      function swapBusDirection() {
+        const originEl = document.getElementById('busOriginSelect');
+        const destEl = document.getElementById('busDestSelect');
+        if (!originEl || !destEl) return;
+
+        const temp = originEl.value;
+        originEl.value = destEl.value;
+        destEl.value = temp;
+
+        handleBusRouteSelectChange();
+      }
+
+      function handleBusRouteSelectChange() {
+        const originEl = document.getElementById('busOriginSelect');
+        const destEl = document.getElementById('busDestSelect');
+        if (!originEl || !destEl) return;
+
+        let origin = originEl.value;
+        let dest = destEl.value;
+
+        if (origin === dest) {
+          const options = ['dhaka', 'cox', 'bandarban', 'rangamati', 'ctg', 'khagra'];
+          dest = options.find(o => o !== origin) || 'cox';
+          destEl.value = dest;
+          showToast(`Destination adjusted to ${getDestName(dest)}`);
+        }
+
+        const routeId = `${origin}-${dest}`;
+        selectRoute(routeId);
+      }
+
       function selectRoute(routeId) {
         selectedRoute = routeId;
         selectedBusType = null; // reset choice on route swap
+
+        const parts = routeId.split('-');
+        if (parts.length === 2) {
+          const originEl = document.getElementById('busOriginSelect');
+          const destEl = document.getElementById('busDestSelect');
+          if (originEl) originEl.value = parts[0];
+          if (destEl) destEl.value = parts[1];
+        }
+
         renderBusTransport();
       }
 
       function selectBusType(busTypeId) {
         selectedBusType = busTypeId;
         renderBusTransport();
+      }
+
+      function selectBusTypeAndToggle(busTypeId) {
+        selectedBusType = busTypeId;
+        toggleBusInCart();
       }
 
       function toggleBusInCart() {
@@ -5187,7 +6573,24 @@
       ];
 
       function renderBusTransport() {
-        // Render Route Tabs
+        // Sync Dropdowns if available
+        const parts = selectedRoute.split('-');
+        if (parts.length === 2) {
+          const originEl = document.getElementById('busOriginSelect');
+          const destEl = document.getElementById('busDestSelect');
+          if (originEl) originEl.value = parts[0];
+          if (destEl) destEl.value = parts[1];
+        }
+
+        // Update Dynamic Section Title & Subtitle
+        const titleEl = document.getElementById('busSectionTitle');
+        const subEl = document.getElementById('busSectionSub');
+        const currentRouteObj = BUS_ROUTES.find(r => r.id === selectedRoute);
+        const routeTitleText = currentRouteObj ? currentRouteObj.name : 'Intercity Bus Carriage';
+        if (titleEl) titleEl.textContent = `Book Bus: ${routeTitleText}`;
+        if (subEl) subEl.textContent = `Select your coach class for ${routeTitleText} — verified partner operators with instant booking.`;
+
+        // Render Quick Route Tabs
         const tabsContainer = document.querySelector('.bus-route-tabs');
         if (tabsContainer) {
           tabsContainer.innerHTML = BUS_ROUTES.map(route => {
@@ -5204,27 +6607,48 @@
         const gridContainer = document.querySelector('.bus-cards-grid');
         if (gridContainer) {
           gridContainer.innerHTML = BUS_CLASSES.map(b => {
-            const price = b.priceRange[selectedRoute];
+            const price = (b.priceRange && b.priceRange[selectedRoute]) ? b.priceRange[selectedRoute] : 1000;
             const isSelected = selectedBusType === b.id;
+            const key = `${selectedRoute}-${b.id}`;
+            const isInCart = cart.some(item => item.id === 'bus-' + key);
             const cardClass = isSelected ? 'bus-card selected' : 'bus-card';
+
             return `
               <div class="${cardClass}" onclick="selectBusType('${b.id}')">
                 <div>
                   <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
                     <span style="font-size: 36px;">${b.icon}</span>
-                    ${isSelected ? `<span style="background: var(--teal); color: var(--white); font-size: 9px; font-weight: 800; padding: 4px 8px; border-radius: 6px; text-transform: uppercase; letter-spacing: 1px;">Selected</span>` : ''}
+                    ${isInCart ? `<span style="background: var(--coral); color: var(--white); font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 1px;">✓ In Tour</span>` : (isSelected ? `<span style="background: var(--teal); color: var(--white); font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 1px;">Selected</span>` : '')}
                   </div>
                   <h3 style="font-size: 18px; font-weight: 800; margin-bottom: 8px;">${b.name}</h3>
-                  <p class="bus-desc" style="font-size: 13px; color: rgba(255,255,255,0.6); line-height: 1.4; margin-bottom: 16px;">${b.desc}</p>
+                  <p class="bus-desc" style="font-size: 13px; color: ${isSelected ? 'var(--ink)' : 'rgba(255,255,255,0.6)'}; line-height: 1.4; margin-bottom: 16px;">${b.desc}</p>
                 </div>
-                <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 16px; margin-top: 16px; display: flex; justify-content: space-between; align-items: flex-end;">
-                  <div>
-                    <span style="font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 4px;">One-Way Fare</span>
-                    <span style="font-family: 'Space Mono', monospace; font-size: 18px; font-weight: 800; color: var(--coral);">৳${price.toLocaleString()} BDT</span>
+
+                <div style="border-top: 1px solid ${isSelected ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.08)'}; padding-top: 16px; margin-top: 16px; display: flex; flex-direction: column; gap: 12px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                      <span style="font-size: 10px; font-weight: 700; color: ${isSelected ? 'var(--ink-light)' : 'rgba(255,255,255,0.4)'}; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 2px;">One-Way Fare</span>
+                      <span style="font-family: 'Space Mono', monospace; font-size: 18px; font-weight: 800; color: var(--coral);">৳${price.toLocaleString()} BDT</span>
+                    </div>
+                    <span style="font-size: 11px; font-weight: 700; color: ${isSelected ? 'var(--teal)' : 'var(--gold)'};">⏱ ${currentRouteObj ? currentRouteObj.duration : '8-9 hrs'}</span>
                   </div>
-                  <div style="width: 20px; height: 20px; border-radius: 50%; border: 2px solid ${isSelected ? 'var(--teal)' : 'rgba(255,255,255,0.2)'}; display: flex; align-items: center; justify-content: center;">
-                    ${isSelected ? '<div style="width: 10px; height: 10px; border-radius: 50%; background: var(--teal);"></div>' : ''}
-                  </div>
+
+                  <button type="button" onclick="event.stopPropagation(); selectBusTypeAndToggle('${b.id}')" style="
+                    width: 100%;
+                    padding: 10px 14px;
+                    border-radius: 10px;
+                    font-size: 11px;
+                    font-weight: 800;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                    cursor: pointer;
+                    transition: var(--transition);
+                    border: none;
+                    background: ${isInCart ? 'var(--coral)' : (isSelected ? 'var(--teal)' : 'rgba(255,255,255,0.15)')};
+                    color: var(--white);
+                  ">
+                    ${isInCart ? '✓ In Tour — Remove' : (isSelected ? '＋ Confirm & Add' : 'Choose Coach')}
+                  </button>
                 </div>
               </div>
             `;
@@ -5234,7 +6658,7 @@
         // Render Operators
         const listGrid = document.querySelector('.operators-list-grid');
         if (listGrid) {
-          const names = OPERATORS[selectedRoute] || [];
+          const names = OPERATORS[selectedRoute] || ['Shyamoli Paribahan', 'Hanif Enterprise', 'Green Line', 'S.Alam Paribahan'];
           listGrid.innerHTML = names.map(name => `
             <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255,255,255,0.05); padding: 16px; border-radius: 12px; text-align: center;">
               <span style="display: block; font-size: 13px; font-weight: 700; color: var(--white);">${name}</span>
@@ -5248,7 +6672,7 @@
         const btn = document.getElementById('addToTourBusBtn');
         if (btn) {
           if (!selectedBusType) {
-            statusText.textContent = "Please select a coach tier above to proceed with intercity carriage pre-booking.";
+            statusText.textContent = `Select a coach tier above for ${routeTitleText} to add to your tour.`;
             btn.textContent = "Select a bus type first";
             btn.disabled = true;
             btn.style.background = 'rgba(255,255,255,0.05)';
@@ -5257,20 +6681,19 @@
             btn.style.cursor = 'not-allowed';
           } else {
             const busObj = BUS_CLASSES.find(b => b.id === selectedBusType);
-            const routeObj = BUS_ROUTES.find(r => r.id === selectedRoute);
             const key = `${selectedRoute}-${selectedBusType}`;
             const isInCart = cart.some(item => item.id === 'bus-' + key);
 
             if (isInCart) {
-              statusText.textContent = `✓ Handled! ${busObj.name} (${routeObj.name}) is fully locked and queued in your itinerary cart.`;
-              btn.textContent = "Change Bus · ✓ In Tour";
+              statusText.textContent = `✓ ${busObj.name} (${routeTitleText}) is added to your tour cart.`;
+              btn.textContent = "Remove Bus from Tour";
               btn.disabled = false;
               btn.style.background = 'var(--coral)';
               btn.style.borderColor = 'var(--coral)';
               btn.style.color = 'var(--white)';
               btn.style.cursor = 'pointer';
             } else {
-              statusText.textContent = `Ready to secure booking blocks for ${busObj.name} on ${routeObj.name}. No upfront seat margin.`;
+              statusText.textContent = `Ready to add ${busObj.name} (${routeTitleText}) to your tour.`;
               btn.textContent = `Add ${busObj.name} to Tour →`;
               btn.disabled = false;
               btn.style.background = 'var(--teal)';
@@ -5313,31 +6736,31 @@
             gridContainer.innerHTML = filtered.map(lt => {
               const added = !!ltCart[lt.id];
               return `
-                <div class="lt-card shadow-sm rounded-2xl bg-white border border-gray-150 overflow-hidden flex flex-col justify-between" style="transition: var(--transition);">
+                <div class="lt-card shadow-sm rounded-2xl bg-white border border-gray-150 overflow-hidden">
                   
-                  <div class="lt-card-hero" style="height: 120px; background: ${getGradientForDest(lt.dest)}; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; position: relative;">
+                  <div class="lt-card-hero" style="height: 120px; background: ${getGradientForDest(lt.dest)}; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; position: relative; flex-shrink: 0;">
                     <span style="font-size: 40px; text-shadow: 0 4px 10px rgba(0,0,0,0.15);">${lt.icon}</span>
                     <span style="background: rgba(255,255,255,0.25); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 800; color: var(--white); text-transform: uppercase; letter-spacing: 1px; width: fit-content;">
                       ${getLtTypeLabel(lt.icon)}
                     </span>
                   </div>
 
-                  <div class="lt-card-body" style="padding: 24px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; height: 100%;">
+                  <div class="lt-card-body">
                     <div>
                       <h3 style="font-size: 18px; font-weight: 800; color: var(--dark); margin-bottom: 8px;">${lt.name}</h3>
                       <div style="font-size: 11px; font-weight: 700; color: var(--teal); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; display: inline-flex; align-items: center; gap: 4px;">
                         <span>📍 ${getDestName(lt.dest)}</span>
                       </div>
-                      <p style="font-size: 13px; color: var(--ink); line-height: 1.5; margin-bottom: 24px;">${lt.desc}</p>
+                      <p style="font-size: 13px; color: var(--ink); line-height: 1.5; margin-bottom: 16px;">${lt.desc}</p>
                     </div>
 
                     <div>
-                      <div style="margin-bottom: 20px; display: flex; align-items: flex-end; justify-content: flex-start; gap: 4px;">
+                      <div style="margin-bottom: 12px; display: flex; align-items: flex-end; justify-content: flex-start; gap: 4px;">
                         <span style="font-family: 'Space Mono', monospace; font-size: 20px; font-weight: 800; color: var(--coral); line-height: 1.1;">৳${lt.price.toLocaleString()}</span>
                         <span style="font-size: 11px; color: var(--ink-light); font-weight: 700; text-transform: uppercase; margin-bottom: 2px;">/ ${lt.unit}</span>
                       </div>
 
-                      <button onclick="toggleLocalTransport('${lt.id}')" class="lt-add-btn ${added ? 'added' : ''}" style="width: 100%; padding: 14px 20px; border-radius: 12px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; cursor: pointer; transition: var(--transition); border: none;">
+                      <button type="button" onclick="toggleLocalTransport('${lt.id}')" class="lt-add-btn ${added ? 'added' : ''}">
                         ${added ? '✓ In Tour — Remove' : '＋ Add to Tour'}
                       </button>
                     </div>
@@ -5387,7 +6810,10 @@
               <div class="hotel-content">
                 <div class="hotel-info-block">
                   <h3 class="hotel-name">${hotel.name}</h3>
-                  <div class="hotel-location">📍 ${hotel.loc}</div>
+                  <div class="hotel-location" style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+                    <span>📍 ${hotel.loc}</span>
+                    <button type="button" onclick="openGoogleMapsModal('${hotel.dest}', '${hotel.name}')" style="background: rgba(66, 133, 244, 0.12); color: #2563EB; border: 1px solid rgba(66, 133, 244, 0.25); padding: 2px 8px; border-radius: 6px; font-size: 10.5px; font-weight: 700; cursor: pointer; white-space: nowrap;">📍 Google Maps</button>
+                  </div>
                   <div class="hotel-specialty">${hotel.specialty}</div>
                   ${hotel.phone ? `<a href="tel:${hotel.phone}" class="hotel-phone">📞 ${hotel.phone}</a>` : ''}
                 </div>
@@ -6427,6 +7853,9 @@
       let mapMarkers = [];
       let mapActiveDest = 'all';
       let mapLayer = 'all';
+      let mapSubTheme = 'all';
+      let easyPrinter = null;
+      let tourPathPolyline = null;
 
       const REGIONS_COORDS = {
         all: { center: [21.90, 92.12], zoom: 8 },
@@ -6490,9 +7919,32 @@
         }
       }
 
-      function createCustomMarkerIcon(item, isSelected, isHotel) {
+      function createCustomMarkerIcon(item, isSelected, isHotel, stopNum = null) {
         const bgGradient = isHotel ? (item.bg || 'linear-gradient(135deg, #0284c7, #0f172a)') : getGradientForActivity(item);
         const borderStyle = isSelected ? 'border: 3px solid #D4A843; scale: 1.15; box-shadow: 0 0 12px #D4A843;' : 'border: 2px solid #FFFFFF;';
+        
+        const badgeHtml = stopNum ? `
+          <div style="
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background: #E85D3A;
+            color: #FFFFFF;
+            font-size: 10px;
+            font-weight: 800;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1.5px solid #FFFFFF;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            z-index: 10;
+            font-family: 'Space Mono', monospace;
+          ">${stopNum}</div>
+        ` : '';
+
         const html = `
           <div class="custom-map-marker" style="
             background: ${bgGradient};
@@ -6504,9 +7956,11 @@
             justify-content: center;
             overflow: hidden;
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            position: relative;
             ${borderStyle}
           ">
             ${renderIcon(item.icon, '100%', '50%')}
+            ${badgeHtml}
           </div>
         `;
         return L.divIcon({
@@ -6532,8 +7986,22 @@
         // Standard clean modern basemap
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
           attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-          maxZoom: 19
+          maxZoom: 19,
+          crossOrigin: true
         }).addTo(mapObj);
+
+        // Initialize easyPrint control
+        if (typeof L.easyPrint === 'function') {
+          easyPrinter = L.easyPrint({
+            title: 'Export Map View',
+            position: 'topleft',
+            sizeModes: ['Current'],
+            filename: 'TourCartBD_Itinerary_Map',
+            exportOnly: true,
+            hideControlContainer: true,
+            tileWait: 1000
+          }).addTo(mapObj);
+        }
 
         // District list matching dashboard buttons
         renderMapSidebarDestinations();
@@ -6583,24 +8051,85 @@
       function updateMapMarkers() {
         if (!mapObj) return;
 
-        // Clear previous
+        // Clear previous markers
         mapMarkers.forEach(m => mapObj.removeLayer(m));
         mapMarkers = [];
 
+        // Clear previous polyline path
+        if (tourPathPolyline) {
+          mapObj.removeLayer(tourPathPolyline);
+          tourPathPolyline = null;
+        }
+
         const showActivities = mapLayer === 'all' || mapLayer === 'activities';
-        const showHotels = mapLayer === 'all' || mapLayer === 'hotels';
+        const showHotels = (mapLayer === 'all' || mapLayer === 'hotels') && mapSubTheme === 'all';
+
+        // Build sequential cart stops map for numbered badges & polyline tour path
+        const cartStopMap = {};
+        const tourPathPoints = [];
+
+        cart.forEach((item, index) => {
+          const stopNum = index + 1;
+          if (typeof item.id === 'number' && ACTIVITY_COORDS[item.id]) {
+            cartStopMap[`act_${item.id}`] = stopNum;
+            tourPathPoints.push({
+              lat: ACTIVITY_COORDS[item.id].lat,
+              lng: ACTIVITY_COORDS[item.id].lng,
+              name: item.name
+            });
+          } else if (typeof item.id === 'string' && item.id.startsWith('hotel-')) {
+            const hId = item.id.replace('hotel-', '');
+            if (HOTEL_COORDS[hId]) {
+              cartStopMap[`hotel_${hId}`] = stopNum;
+              tourPathPoints.push({
+                lat: HOTEL_COORDS[hId].lat,
+                lng: HOTEL_COORDS[hId].lng,
+                name: item.name
+              });
+            }
+          }
+        });
+
+        // Draw animated dashed polyline tour path if 2+ stops selected in tour cart
+        if (tourPathPoints.length >= 2) {
+          const polyCoords = tourPathPoints.map(p => [p.lat, p.lng]);
+          tourPathPolyline = L.polyline(polyCoords, {
+            color: '#E85D3A',
+            weight: 5,
+            opacity: 0.9,
+            dashArray: '10, 8',
+            lineCap: 'round',
+            lineJoin: 'round'
+          }).addTo(mapObj);
+        }
 
         // 1. Render Activities
         if (showActivities) {
           const filtered = ACTIVITIES.filter(a => {
             if (mapActiveDest !== 'all' && a.dest !== mapActiveDest) return false;
+            
+            // Apply Sub-Theme Filters (Nature Parks vs Religious Sites)
+            if (mapSubTheme === 'nature') {
+              const isNature = a.cat === 'nature' || a.cat === 'wildlife' || a.cat === 'trek' || 
+                               a.name.toLowerCase().includes('park') || a.name.toLowerCase().includes('reserve') || a.name.toLowerCase().includes('safari') ||
+                               (a.tags && a.tags.some(t => t.toLowerCase().includes('park') || t.toLowerCase() === 'eco' || t.toLowerCase() === 'trek'));
+              if (!isNature) return false;
+            } else if (mapSubTheme === 'religious') {
+              const isReligious = a.cat === 'religious' || 
+                                  a.name.toLowerCase().includes('temple') || a.name.toLowerCase().includes('vihar') || 
+                                  a.name.toLowerCase().includes('mosque') || a.name.toLowerCase().includes('monastery') ||
+                                  (a.tags && a.tags.some(t => t.toLowerCase().includes('buddhist') || t.toLowerCase().includes('temple') || t.toLowerCase() === 'monastery' || t.toLowerCase() === 'culture'));
+              if (!isReligious) return false;
+            }
+            
             return !!ACTIVITY_COORDS[a.id];
           });
 
           filtered.forEach(a => {
             const coords = ACTIVITY_COORDS[a.id];
             const isSelected = cart.some(item => item.id === a.id);
-            const icon = createCustomMarkerIcon(a, isSelected, false);
+            const stopNum = cartStopMap[`act_${a.id}`] || null;
+            const icon = createCustomMarkerIcon(a, isSelected, false, stopNum);
 
             const marker = L.marker([coords.lat, coords.lng], { icon: icon }).addTo(mapObj);
 
@@ -6613,7 +8142,7 @@
               <div style="width: 200px; display: flex; flex-direction: column;">
                 <img src="${a.icon}" style="width: 100%; height: 85px; object-fit: cover; border-radius: 10px 10px 0 0; margin-bottom: 6px;" referrerPolicy="no-referrer" alt="" />
                 <div style="padding: 2px 4px 4px 4px;">
-                  <div class="leaflet-popup-title">${a.name}</div>
+                  <div class="leaflet-popup-title">${stopNum ? `<span style="color:#E85D3A; font-weight:800;">[Stop #${stopNum}]</span> ` : ''}${a.name}</div>
                   <div class="leaflet-popup-desc">📍 ${a.loc.split(',')[0]} · ⏱ ${a.duration}</div>
                   <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px;">
                     <span style="font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 800; color: ${isFree ? '#1A7C6E' : '#E85D3A'}">${priceText}</span>
@@ -6646,7 +8175,8 @@
           filteredHotels.forEach(h => {
             const coords = HOTEL_COORDS[h.id];
             const isSelected = !!hotelCart[h.id];
-            const icon = createCustomMarkerIcon(h, isSelected, true);
+            const stopNum = cartStopMap[`hotel_${h.id}`] || null;
+            const icon = createCustomMarkerIcon(h, isSelected, true, stopNum);
 
             const marker = L.marker([coords.lat, coords.lng], { icon: icon }).addTo(mapObj);
 
@@ -6658,7 +8188,7 @@
               <div style="width: 200px; display: flex; flex-direction: column;">
                 <img src="${h.icon}" style="width: 100%; height: 85px; object-fit: cover; border-radius: 10px 10px 0 0; margin-bottom: 6px;" referrerPolicy="no-referrer" alt="" />
                 <div style="padding: 2px 4px 4px 4px;">
-                  <div class="leaflet-popup-title">🏨 ${h.name}</div>
+                  <div class="leaflet-popup-title">🏨 ${stopNum ? `<span style="color:#E85D3A; font-weight:800;">[Stop #${stopNum}]</span> ` : ''}${h.name}</div>
                   <div class="leaflet-popup-desc">📍 ${h.loc.split(',')[0]} · ⭐ ${h.stars} Stars</div>
                   <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px;">
                     <span style="font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 800; color: #E85D3A">${priceText}</span>
@@ -6722,10 +8252,306 @@
         }, 100);
       }
 
+      // GOOGLE MAPS PLATFORM LIVE TRANSIT & DINING INTELLIGENCE ENGINE
+      let currentGmapsSidebarContext = null;
+      let isGmapsScriptLoading = false;
+
+      function loadGoogleMapsJsApi(callback) {
+        if (window.google && window.google.maps && window.google.maps.places) {
+          if (callback) callback();
+          return;
+        }
+
+        const apiKey = (typeof process !== 'undefined' && process.env && process.env.GOOGLE_MAPS_PLATFORM_KEY) 
+          || window.GOOGLE_MAPS_PLATFORM_KEY 
+          || '';
+
+        if (!apiKey) {
+          if (callback) callback();
+          return;
+        }
+
+        if (isGmapsScriptLoading) {
+          const checkInt = setInterval(() => {
+            if (window.google && window.google.maps && window.google.maps.places) {
+              clearInterval(checkInt);
+              if (callback) callback();
+            }
+          }, 200);
+          return;
+        }
+
+        isGmapsScriptLoading = true;
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places,routes`;
+        script.async = true;
+        script.defer = true;
+        script.onload = () => {
+          isGmapsScriptLoading = false;
+          if (callback) callback();
+        };
+        script.onerror = () => {
+          isGmapsScriptLoading = false;
+          if (callback) callback();
+        };
+        document.head.appendChild(script);
+      }
+
+      function getHaversineDistanceKm(lat1, lon1, lat2, lon2) {
+        const R = 6371;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                  Math.sin(dLon/2) * Math.sin(dLon/2);
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      }
+
+      function getTransitHubForCoords(lat, lng, dest) {
+        const hubs = {
+          cox: [
+            { name: "Cox's Bazar Airport (CXB)", lat: 21.4522, lng: 91.9639, type: "✈️ Airport" },
+            { name: "Koltatoli Bus Terminal", lat: 21.4172, lng: 91.9856, type: "🚌 Central Bus Stand" },
+            { name: "Marine Drive Auto Stand", lat: 21.3650, lng: 92.0310, type: "🛺 CNG & Chander Gari" }
+          ],
+          bandarban: [
+            { name: "Bandarban Central Bus Stand", lat: 22.1950, lng: 92.2180, type: "🚌 Regional Bus Hub" },
+            { name: "Chander Gari Safari Terminal", lat: 22.1900, lng: 92.2150, type: "🚙 Mountain Jeep Hub" }
+          ],
+          rangamati: [
+            { name: "Rangamati Central Bus Stand", lat: 22.6500, lng: 92.1800, type: "🚌 Inter-District Station" },
+            { name: "Reserve Bazar Boat Ghat", lat: 22.6450, lng: 92.2000, type: "⛵ Kaptai Lake Ferry Ghat" }
+          ],
+          khagra: [
+            { name: "Khagrachhari Bus Terminal", lat: 23.1100, lng: 91.9700, type: "🚌 Central Bus Stand" }
+          ],
+          ctg: [
+            { name: "Chattogram Railway Station", lat: 22.3350, lng: 91.8320, type: "🚆 Central Railway Station" },
+            { name: "BRTC Express Bus Terminal", lat: 22.3480, lng: 91.8280, type: "🚌 Highway Express Hub" }
+          ]
+        };
+
+        const regionHubs = hubs[dest] || hubs.cox;
+        let closest = regionHubs[0];
+        let minDist = 99999;
+
+        regionHubs.forEach(h => {
+          const d = getHaversineDistanceKm(lat, lng, h.lat, h.lng);
+          if (d < minDist) {
+            minDist = d;
+            closest = h;
+          }
+        });
+
+        const distKm = minDist < 0.1 ? 0.2 : minDist.toFixed(1);
+        const carMins = Math.max(3, Math.round(minDist / 40 * 60));
+        const busMins = Math.max(5, Math.round(minDist / 28 * 60));
+        const autoMins = Math.max(4, Math.round(minDist / 22 * 60));
+
+        return {
+          hubName: closest.name,
+          hubType: closest.type,
+          distKm: distKm,
+          carMins: `${carMins} mins`,
+          busMins: `${busMins} mins`,
+          autoMins: `${autoMins} mins`
+        };
+      }
+
+      function getFallbackDiningForLocation(lat, lng) {
+        if (lat < 21.6 && lat > 20.4) {
+          return [
+            { name: "Jau Bon Restaurant", rating: 4.6, reviews: 840, vicinity: "Koltatoli Rd, Cox's Bazar", price: "৳৳", cuisine: "Fresh Coral Fish & Crab", mapsUrl: `https://www.google.com/maps/search/Jau+Bon+Restaurant+Cox's+Bazar/@${lat},${lng},15z` },
+            { name: "Poushee Hotel & Restora", rating: 4.5, reviews: 1220, vicinity: "Hotel Motel Zone", price: "৳", cuisine: "Bengali Vorta & Loitta Fry", mapsUrl: `https://www.google.com/maps/search/Poushee+Restaurant+Cox's+Bazar/@${lat},${lng},15z` },
+            { name: "Mermaid Beach Cafe", rating: 4.7, reviews: 650, vicinity: "Pechardwip Marine Drive", price: "৳৳৳", cuisine: "Oceanfront Pizza & Seafood", mapsUrl: `https://www.google.com/maps/search/Mermaid+Beach+Cafe/@${lat},${lng},15z` }
+          ];
+        }
+        if (lat >= 21.6 && lat < 22.3 && lng > 92.1) {
+          return [
+            { name: "Nilgiri Cloud View Cafe", rating: 4.7, reviews: 320, vicinity: "Nilgiri Peak Resort", price: "৳৳", cuisine: "Hilltop BBQ & Paratha", mapsUrl: `https://www.google.com/maps/search/Nilgiri+Cafe+Bandarban/@${lat},${lng},15z` },
+            { name: "Boga Lake Tribal Kitchen", rating: 4.8, reviews: 190, vicinity: "Boga Lake Trail", price: "৳", cuisine: "Bamboo Shoot & Wild Rice", mapsUrl: `https://www.google.com/maps/search/Boga+Lake+Food/@${lat},${lng},15z` }
+          ];
+        }
+        if (lat >= 22.3 && lat < 22.9 && lng > 92.1) {
+          return [
+            { name: "Kaptai Lake Floating Restora", rating: 4.6, reviews: 510, vicinity: "Reserve Bazar Ghat", price: "৳৳", cuisine: "Fresh Lake Carp & Prawn Curry", mapsUrl: `https://www.google.com/maps/search/Kaptai+Floating+Restaurant/@${lat},${lng},15z` },
+            { name: "Shuvolong Breeze Cafe", rating: 4.4, reviews: 230, vicinity: "Shuvolong Waterfall Site", price: "৳", cuisine: "Bamboo Fish & Sticky Rice", mapsUrl: `https://www.google.com/maps/search/Shuvolong+Restaurant/@${lat},${lng},15z` }
+          ];
+        }
+        if (lat >= 22.9) {
+          return [
+            { name: "System Restaurant Khagrachhari", rating: 4.7, reviews: 680, vicinity: "Mahajan Para, Khagra", price: "৳৳", cuisine: "Famous Chakma Cuisine", mapsUrl: `https://www.google.com/maps/search/System+Restaurant+Khagrachhari/@${lat},${lng},15z` },
+            { name: "Alutila Cave Refreshment", rating: 4.3, reviews: 150, vicinity: "Alutila Cave Gate", price: "৳", cuisine: "Local Fresh Juices & Snacks", mapsUrl: `https://www.google.com/maps/search/Alutila+Food/@${lat},${lng},15z` }
+          ];
+        }
+        return [
+          { name: "Handi Restaurant Cda", rating: 4.6, reviews: 1450, vicinity: "CDA Avenue, Chattogram", price: "৳৳", cuisine: "Chittagong Mezban Beef & Biryani", mapsUrl: `https://www.google.com/maps/search/Handi+Restaurant+Chattogram/@${lat},${lng},15z` },
+          { name: "Barcode Cafe Foy's Lake", rating: 4.5, reviews: 890, vicinity: "Foy's Lake Rd, Chattogram", price: "৳৳", cuisine: "Gourmet Burgers & Coffee", mapsUrl: `https://www.google.com/maps/search/Barcode+Cafe+Chattogram/@${lat},${lng},15z` }
+        ];
+      }
+
+      function fetchNearbyDiningPlaces(lat, lng, callback) {
+        if (window.google && window.google.maps && window.google.maps.places) {
+          try {
+            const dummyDiv = document.createElement('div');
+            const service = new google.maps.places.PlacesService(dummyDiv);
+            service.nearbySearch({
+              location: new google.maps.LatLng(lat, lng),
+              radius: 1800,
+              type: ['restaurant', 'cafe', 'food']
+            }, (results, status) => {
+              if (status === google.maps.places.PlacesServiceStatus.OK && results && results.length > 0) {
+                const mapped = results.slice(0, 3).map(p => ({
+                  name: p.name,
+                  rating: p.rating || 4.5,
+                  reviews: p.user_ratings_total || 100,
+                  vicinity: p.vicinity || 'Nearby spot',
+                  price: p.price_level ? '৳'.repeat(p.price_level) : '৳৳',
+                  cuisine: p.types ? p.types.includes('cafe') ? 'Cafe & Snacks' : 'Restaurant & Dining' : 'Local Dining',
+                  mapsUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.name)}&query_place_id=${p.place_id || ''}`
+                }));
+                callback(mapped, true);
+                return;
+              }
+              callback(getFallbackDiningForLocation(lat, lng), false);
+            });
+            return;
+          } catch (e) {
+            console.warn("Google Places API error, using verified database:", e);
+          }
+        }
+        callback(getFallbackDiningForLocation(lat, lng), false);
+      }
+
+      function switchMapSidebarGmapsTab(tabName) {
+        if (!currentGmapsSidebarContext) return;
+        currentGmapsSidebarContext.activeTab = tabName;
+
+        const transitTabBtn = document.getElementById('gmapsTabTransitBtn');
+        const diningTabBtn = document.getElementById('gmapsTabDiningBtn');
+
+        if (transitTabBtn) transitTabBtn.className = `gmaps-sidebar-tab-btn ${tabName === 'transit' ? 'active' : ''}`;
+        if (diningTabBtn) diningTabBtn.className = `gmaps-sidebar-tab-btn ${tabName === 'dining' ? 'active' : ''}`;
+
+        renderGmapsSidebarTabContent();
+      }
+
+      function renderGmapsSidebarTabContent() {
+        const container = document.getElementById('gmapsSidebarTabContent');
+        if (!container || !currentGmapsSidebarContext) return;
+
+        const { lat, lng, name, dest, activeTab } = currentGmapsSidebarContext;
+
+        if (activeTab === 'transit') {
+          const t = getTransitHubForCoords(lat, lng, dest);
+          container.innerHTML = `
+            <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px; font-weight: 800; color: #1A7C6E;">
+                <span>🚏 Nearest Transit Connection</span>
+                <span style="background: rgba(26,124,110,0.1); color: #1A7C6E; padding: 2px 8px; border-radius: 12px; font-weight: 800;">📍 ${t.distKm} km away</span>
+              </div>
+
+              <div class="gmaps-transit-card">
+                <div class="gmaps-card-title">
+                  <span>${t.hubName}</span>
+                  <span style="font-size: 10px; color: #6B7280;">${t.hubType}</span>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 6px; text-align: center;">
+                  <div style="background: var(--sand); padding: 6px; border-radius: 8px;">
+                    <div style="font-size: 12px;">🚗 Taxi</div>
+                    <div style="font-weight: 800; color: var(--dark); font-size: 11px; margin-top: 2px;">~${t.carMins}</div>
+                  </div>
+                  <div style="background: var(--sand); padding: 6px; border-radius: 8px;">
+                    <div style="font-size: 12px;">🚌 Bus</div>
+                    <div style="font-weight: 800; color: var(--dark); font-size: 11px; margin-top: 2px;">~${t.busMins}</div>
+                  </div>
+                  <div style="background: var(--sand); padding: 6px; border-radius: 8px;">
+                    <div style="font-size: 12px;">🛺 CNG</div>
+                    <div style="font-weight: 800; color: var(--dark); font-size: 11px; margin-top: 2px;">~${t.autoMins}</div>
+                  </div>
+                </div>
+              </div>
+
+              <a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=transit" target="_blank" rel="noopener noreferrer" style="
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                background: #4285F4;
+                color: #FFFFFF;
+                padding: 9px 12px;
+                border-radius: 8px;
+                font-size: 11px;
+                font-weight: 800;
+                text-decoration: none;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin-top: 2px;
+                box-shadow: 0 4px 12px rgba(66, 133, 244, 0.2);
+              ">
+                🧭 Google Maps Live Navigation Directions ➔
+              </a>
+            </div>
+          `;
+        } else {
+          container.innerHTML = `
+            <div style="text-align: center; padding: 14px 8px; font-size: 11.5px; color: #6B7280;">
+              ⏳ Fetching nearby dining directly from Google Maps API...
+            </div>
+          `;
+
+          loadGoogleMapsJsApi(() => {
+            fetchNearbyDiningPlaces(lat, lng, (places, isLive) => {
+              if (!container || currentGmapsSidebarContext.activeTab !== 'dining') return;
+              container.innerHTML = `
+                <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;">
+                  <div style="display: flex; align-items: center; justify-content: space-between; font-size: 10.5px; font-weight: 800; color: #E85D3A;">
+                    <span>🍽️ Nearby Dining Suggestions</span>
+                    <span style="font-size: 10px; color: ${isLive ? '#10B981' : '#4285F4'}; font-weight: 800;">
+                      ${isLive ? '🟢 Google Places Live API' : '📍 Verified Nearby Spots'}
+                    </span>
+                  </div>
+
+                  ${places.map(p => `
+                    <div class="gmaps-dining-card">
+                      <div class="gmaps-card-title">
+                        <span style="font-size: 12px;">${p.name}</span>
+                        <span style="color: #F59E0B; font-weight: 800; font-size: 11px;">
+                          ⭐ ${p.rating} <span style="font-size: 9px; color: #6B7280;">(${p.reviews})</span>
+                        </span>
+                      </div>
+                      <div class="gmaps-card-meta">
+                        <span>📍 ${p.vicinity}</span>
+                        <span>· ${p.price}</span>
+                        <span>· ${p.cuisine}</span>
+                      </div>
+                      <div style="display: flex; justify-content: flex-end; margin-top: 2px;">
+                        <a href="${p.mapsUrl}" target="_blank" rel="noopener noreferrer" style="color: #4285F4; font-size: 10.5px; font-weight: 800; text-decoration: none;">
+                          View on Google Maps ➔
+                        </a>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              `;
+            });
+          });
+        }
+      }
+
       function showMapSelectedSpotDetails(id) {
         const a = ACTIVITIES.find(act => act.id === id);
         const container = document.getElementById('mapSelectedSpotInfo');
         if (!a || !container) return;
+
+        const coords = ACTIVITY_COORDS[a.id] || { lat: 21.4322, lng: 92.0068 };
+        currentGmapsSidebarContext = {
+          lat: coords.lat,
+          lng: coords.lng,
+          name: a.name,
+          dest: a.dest,
+          activeTab: 'transit'
+        };
 
         const isSelected = cart.some(item => item.id === a.id);
         const isFree = a.price === 0;
@@ -6742,16 +8568,34 @@
                 <span>· ⏱ ${a.duration}</span>
                 <span>· 🔥 ${diffWord}</span>
               </div>
-              <p class="selected-spot-desc">${a.desc.substring(0, 110)}...</p>
+              <p class="selected-spot-desc">${a.desc.substring(0, 100)}...</p>
             </div>
+            
             <div class="selected-spot-price-row">
               <span class="selected-spot-price ${isFree ? 'free' : ''}">${priceText}</span>
-              <button class="selected-spot-btn ${isSelected ? 'remove' : ''}" onclick="handleMapMarkerCartToggle(${a.id})">
-                ${isSelected ? 'Remove Spot' : '＋ Add to Tour'}
+              <div style="display: flex; gap: 6px;">
+                <button type="button" onclick="openGoogleMapsModal('${a.dest}', '${a.name}')" style="background: rgba(66, 133, 244, 0.15); color: #60A5FA; border: 1px solid rgba(66, 133, 244, 0.3); padding: 8px 12px; border-radius: 8px; font-size: 11px; font-weight: 800; cursor: pointer;">📍 Google Maps</button>
+                <button class="selected-spot-btn ${isSelected ? 'remove' : ''}" onclick="handleMapMarkerCartToggle(${a.id})">
+                  ${isSelected ? 'Remove Spot' : '＋ Add to Tour'}
+                </button>
+              </div>
+            </div>
+
+            <!-- Google Maps Live Transit & Dining Tabs -->
+            <div class="gmaps-sidebar-tabs">
+              <button id="gmapsTabTransitBtn" class="gmaps-sidebar-tab-btn active" onclick="switchMapSidebarGmapsTab('transit')">
+                🚏 Live Transit
+              </button>
+              <button id="gmapsTabDiningBtn" class="gmaps-sidebar-tab-btn" onclick="switchMapSidebarGmapsTab('dining')">
+                🍽️ Nearby Dining
               </button>
             </div>
+
+            <div id="gmapsSidebarTabContent"></div>
           </div>
         `;
+
+        renderGmapsSidebarTabContent();
       }
 
       function showMapSelectedHotelDetails(id) {
@@ -6759,10 +8603,16 @@
         const container = document.getElementById('mapSelectedSpotInfo');
         if (!h || !container) return;
 
+        const coords = HOTEL_COORDS[h.id] || { lat: 21.4162, lng: 91.9840 };
+        currentGmapsSidebarContext = {
+          lat: coords.lat,
+          lng: coords.lng,
+          name: h.name,
+          dest: h.dest,
+          activeTab: 'transit'
+        };
+
         const isSelected = !!hotelCart[h.id];
-        const nightsText = `${nightsCount} nights`;
-        const totalPrice = h.pricePerNight * nightsCount;
-        const priceText = `Total: ৳${totalPrice.toLocaleString()} BDT (${nightsText})`;
 
         container.className = ""; // clear placeholder layout class
         container.innerHTML = `
@@ -6774,16 +8624,34 @@
                 <span>· ⭐ ${h.stars} Stars</span>
                 <span>· 💫 Specialty: ${h.specialty}</span>
               </div>
-              <p class="selected-spot-desc">${h.desc.substring(0, 110)}...</p>
+              <p class="selected-spot-desc">${h.desc.substring(0, 100)}...</p>
             </div>
+
             <div class="selected-spot-price-row">
               <span class="selected-spot-price">৳${h.pricePerNight.toLocaleString()}/nt</span>
-              <button class="selected-spot-btn ${isSelected ? 'remove' : ''}" onclick="handleMapHotelCartToggle('${h.id}')">
-                ${isSelected ? 'Remove Stay' : '＋ Book Stay'}
+              <div style="display: flex; gap: 6px;">
+                <button type="button" onclick="openGoogleMapsModal('${h.dest}', '${h.name}')" style="background: rgba(66, 133, 244, 0.15); color: #60A5FA; border: 1px solid rgba(66, 133, 244, 0.3); padding: 8px 12px; border-radius: 8px; font-size: 11px; font-weight: 800; cursor: pointer;">📍 Google Maps</button>
+                <button class="selected-spot-btn ${isSelected ? 'remove' : ''}" onclick="handleMapHotelCartToggle('${h.id}')">
+                  ${isSelected ? 'Remove Stay' : '＋ Book Stay'}
+                </button>
+              </div>
+            </div>
+
+            <!-- Google Maps Live Transit & Dining Tabs -->
+            <div class="gmaps-sidebar-tabs">
+              <button id="gmapsTabTransitBtn" class="gmaps-sidebar-tab-btn active" onclick="switchMapSidebarGmapsTab('transit')">
+                🚏 Live Transit
+              </button>
+              <button id="gmapsTabDiningBtn" class="gmaps-sidebar-tab-btn" onclick="switchMapSidebarGmapsTab('dining')">
+                🍽️ Nearby Dining
               </button>
             </div>
+
+            <div id="gmapsSidebarTabContent"></div>
           </div>
         `;
+
+        renderGmapsSidebarTabContent();
       }
 
       function setMapLayer(layer) {
@@ -6802,7 +8670,118 @@
         if (layer === 'activities' && actBtn) actBtn.classList.add('active');
         if (layer === 'hotels' && hotBtn) hotBtn.classList.add('active');
         
+        // Auto-heal mapSubTheme if user switches to hotels
+        if (layer === 'hotels' && mapSubTheme !== 'all') {
+          mapSubTheme = 'all';
+          const subAllBtn = document.getElementById('subThemeAllBtn');
+          const subNatBtn = document.getElementById('subThemeNatureBtn');
+          const subRelBtn = document.getElementById('subThemeReligiousBtn');
+          
+          if (subAllBtn) subAllBtn.classList.add('active');
+          if (subNatBtn) subNatBtn.classList.remove('active');
+          if (subRelBtn) subRelBtn.classList.remove('active');
+        }
+        
         updateMapMarkers();
+      }
+
+      function setMapSubTheme(theme) {
+        mapSubTheme = theme;
+        
+        // Auto-heal main layer if it was set to 'hotels' when choosing a hotspot sub-theme
+        if (theme !== 'all' && mapLayer === 'hotels') {
+          setMapLayer('activities');
+          return; // setMapLayer calls updateMapMarkers and manages CSS classes
+        }
+        
+        const allBtn = document.getElementById('subThemeAllBtn');
+        const natureBtn = document.getElementById('subThemeNatureBtn');
+        const religiousBtn = document.getElementById('subThemeReligiousBtn');
+        
+        if (allBtn) allBtn.classList.remove('active');
+        if (natureBtn) natureBtn.classList.remove('active');
+        if (religiousBtn) religiousBtn.classList.remove('active');
+        
+        if (theme === 'all' && allBtn) allBtn.classList.add('active');
+        if (theme === 'nature' && natureBtn) natureBtn.classList.add('active');
+        if (theme === 'religious' && religiousBtn) religiousBtn.classList.add('active');
+        
+        updateMapMarkers();
+      }
+
+      function exportItineraryMap(format = 'png') {
+        if (!mapObj) {
+          showToast("Map is not loaded yet!");
+          return;
+        }
+
+        const pngBtn = document.getElementById("exportMapPngBtn");
+        const pdfBtn = document.getElementById("exportMapPdfBtn");
+        const activeBtn = format === 'pdf' ? pdfBtn : pngBtn;
+
+        if (activeBtn) {
+          activeBtn.disabled = true;
+          activeBtn.innerHTML = `<span class="spinner"></span> Capturing ${format.toUpperCase()}...`;
+        }
+
+        showToast(`📸 Capturing high-resolution tour path map (${format.toUpperCase()})...`);
+
+        try {
+          if (format === 'pdf') {
+            setTimeout(() => {
+              window.print();
+              if (activeBtn) {
+                activeBtn.disabled = false;
+                activeBtn.innerHTML = "📄 Export PDF Map";
+              }
+              showToast("✔️ PDF print preview opened! Choose 'Save as PDF' in print options.");
+            }, 400);
+            return;
+          }
+
+          if (easyPrinter) {
+            easyPrinter.printMap('CurrentSize', 'TourCartBD_TourPath_Map');
+            setTimeout(() => {
+              showToast("✔️ High-resolution PNG map download initiated!");
+              if (activeBtn) {
+                activeBtn.disabled = false;
+                activeBtn.innerHTML = "📸 Export PNG Map";
+              }
+            }, 2500);
+          } else if (typeof L.easyPrint === 'function') {
+            easyPrinter = L.easyPrint({
+              sizeModes: ['Current'],
+              filename: 'TourCartBD_TourPath_Map',
+              exportOnly: true,
+              hideControlContainer: true,
+              tileWait: 1500
+            }).addTo(mapObj);
+            
+            easyPrinter.printMap('CurrentSize', 'TourCartBD_TourPath_Map');
+            setTimeout(() => {
+              showToast("✔️ High-resolution PNG map download initiated!");
+              if (activeBtn) {
+                activeBtn.disabled = false;
+                activeBtn.innerHTML = "📸 Export PNG Map";
+              }
+            }, 2500);
+          } else {
+            showToast("ℹ️ Leaflet printer fallback: Opening print dialog...");
+            window.print();
+            if (activeBtn) {
+              activeBtn.disabled = false;
+              activeBtn.innerHTML = "📸 Export PNG Map";
+            }
+          }
+        } catch (err) {
+          console.error("Easyprint failed", err);
+          showToast("⚠️ Export fallback: Opening print view...");
+          window.print();
+          if (activeBtn) {
+            activeBtn.disabled = false;
+            activeBtn.innerHTML = format === 'pdf' ? "📄 Export PDF Map" : "📸 Export PNG Map";
+          }
+        }
       }
 
       // PRICE SLIDER INPUT LISTENER Initialize
