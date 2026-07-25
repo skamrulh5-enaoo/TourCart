@@ -15,6 +15,8 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <!-- Leaflet EasyPrint Plugin for High-Resolution PNG Map Downloads -->
     <script src="https://unpkg.com/leaflet.easyprint@2.1.9/dist/bundle.js"></script>
+    <!-- html2pdf.js CDN for High-Resolution Vector PDF Generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
     <style>
       /* CSS VARIABLES */
@@ -2587,8 +2589,14 @@
     <!-- NAVIGATION BAR -->
     <nav id="mainNav">
       <!-- Left Side — Logo -->
-      <a href="#" class="nav-logo" id="navLogo">
-        Tour<span>Cart</span>BD 🛒
+      <a href="#" class="nav-logo" id="navLogo" style="display: flex; align-items: center; gap: 9px; text-decoration: none;">
+        <svg width="28" height="28" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="border-radius: 7px; flex-shrink: 0; filter: drop-shadow(0 2px 4px rgba(238,49,36,0.3));">
+          <rect width="100" height="100" rx="22" fill="#EE3124"/>
+          <circle cx="50" cy="50" r="38" stroke="white" stroke-width="6" fill="none"/>
+          <path d="M50 18 L57 43 L82 50 L57 57 L50 82 L43 57 L18 50 L43 43 Z" fill="white"/>
+          <circle cx="50" cy="50" r="5" fill="#EE3124"/>
+        </svg>
+        <span style="font-weight: 900; font-size: 20px; letter-spacing: -0.5px;">Tour<span style="color: #EE3124;">Cart</span>BD</span>
       </a>
 
       <!-- Centre — Links (Hidden on Mobile) -->
@@ -2603,6 +2611,24 @@
 
       <!-- Right Side — Buttons -->
       <div class="nav-buttons">
+        <button type="button" onclick="toggleAiTourPlanner()" style="
+          background: linear-gradient(135deg, #EE3124 0%, #B91C1C 100%);
+          color: #FFFFFF;
+          border: 1px solid rgba(255,255,255,0.2);
+          padding: 8px 14px;
+          border-radius: 20px;
+          font-weight: 800;
+          font-size: 12px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          box-shadow: 0 4px 12px rgba(238,49,36,0.25);
+          transition: all 0.2s ease;
+        ">
+          🤖 AI Tour Planner
+        </button>
+
         <button id="navCartBtn" type="button">
           🛒 My Cart
           <span class="cart-badge" id="cartBadgeCount">0</span>
@@ -2627,23 +2653,25 @@
       <a href="#local-transport" class="mobile-link">Local Transport</a>
       <a href="#destinations" class="mobile-link">Destinations</a>
       <a href="#packages" class="mobile-link">Packages</a>
-      <button type="button" onclick="closeMobileMenu(); openAdminAuthModal();" style="
-        text-align: left;
-        background: rgba(255, 255, 255, 0.05);
-        color: rgba(255, 255, 255, 0.6);
-        padding: 10px 14px;
-        border-radius: 8px;
-        font-weight: 700;
-        font-size: 11px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+      <button type="button" onclick="closeMobileMenu(); toggleAiTourPlanner();" style="
+        text-align: center;
+        background: linear-gradient(135deg, #EE3124 0%, #B91C1C 100%);
+        color: #FFFFFF;
+        padding: 12px 16px;
+        border-radius: 10px;
+        font-weight: 800;
+        font-size: 13px;
+        border: none;
         margin-top: 12px;
         cursor: pointer;
         width: 100%;
         display: flex;
         align-items: center;
-        gap: 6px;
+        justify-content: center;
+        gap: 8px;
+        box-shadow: 0 4px 12px rgba(238,49,36,0.3);
       ">
-        ⚙️ Admin Dashboard Login
+        🤖 Open AI Tour Planner
       </button>
     </div>
 
@@ -3599,6 +3627,74 @@
           display: none !important;
         }
       }
+
+      /* FULL SCREEN MAP STYLES */
+      .map-layout-grid.is-fullscreen {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        z-index: 999999 !important;
+        margin: 0 !important;
+        padding: 16px !important;
+        background: #0B0E14 !important;
+        border-radius: 0 !important;
+        box-sizing: border-box !important;
+        grid-template-columns: 8.5fr 3.5fr !important;
+        display: grid !important;
+        gap: 16px !important;
+      }
+
+      .map-layout-grid.is-fullscreen .map-wrapper {
+        height: calc(100vh - 32px) !important;
+        border-radius: 16px !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+      }
+
+      .map-layout-grid.is-fullscreen #leafletMap {
+        height: 100% !important;
+      }
+
+      .map-layout-grid.is-fullscreen .map-sidebar-card {
+        height: calc(100vh - 32px) !important;
+        background: #161B26 !important;
+        border-color: rgba(255, 255, 255, 0.12) !important;
+        color: #F8FAFC !important;
+      }
+
+      .map-layout-grid.is-fullscreen .map-sidebar-title {
+        color: #38BDF8 !important;
+        border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+      }
+
+      .map-layout-grid.is-fullscreen .map-spot-summary {
+        background: rgba(255, 255, 255, 0.04) !important;
+        border-color: rgba(255, 255, 255, 0.12) !important;
+      }
+
+      .map-layout-grid.is-fullscreen .selected-spot-title {
+        color: #FFFFFF !important;
+      }
+
+      .map-layout-grid.is-fullscreen .selected-spot-placeholder {
+        color: rgba(255, 255, 255, 0.6) !important;
+      }
+
+      .map-layout-grid.is-fullscreen .map-guide-tip {
+        background: rgba(56, 189, 248, 0.1) !important;
+        border-color: rgba(56, 189, 248, 0.25) !important;
+        color: #38BDF8 !important;
+      }
+
+      @media (max-width: 900px) {
+        .map-layout-grid.is-fullscreen {
+          grid-template-columns: 1fr !important;
+        }
+        .map-layout-grid.is-fullscreen .map-sidebar-card {
+          display: none !important;
+        }
+      }
     </style>
 
     <section id="destinations" class="destinations-section">
@@ -3617,11 +3713,64 @@
           </p>
         </div>
 
-        <div class="map-layout-grid">
+        <div class="map-layout-grid" id="mapLayoutGrid">
           <!-- Live Leaflet Map Canvas -->
-          <div class="map-wrapper" style="height: 620px; position: relative;">
+          <div class="map-wrapper" id="mapWrapper" style="height: 620px; position: relative;">
             <div id="leafletMap" style="height: 620px; width: 100%;"></div>
+            
+            <!-- Quick Top-Right Full Screen Toggle Overlay -->
+            <button id="mapTopFullscreenBtn" onclick="toggleMapFullscreen()" title="Toggle Full Screen Map" style="
+              position: absolute;
+              top: 16px;
+              right: 16px;
+              z-index: 1000;
+              background: #0F172A;
+              color: #FFFFFF;
+              border: 1px solid rgba(255, 255, 255, 0.25);
+              border-radius: 10px;
+              padding: 8px 14px;
+              font-size: 12px;
+              font-weight: 800;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              gap: 6px;
+              box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+              transition: all 0.2s ease;
+            ">
+              ⛶ Full Screen Map
+            </button>
+
+            <!-- Measurement Tool Banner Overlay -->
+            <div id="mapMeasureBanner" style="
+              display: none;
+              position: absolute;
+              top: 16px;
+              left: 50%;
+              transform: translateX(-50%);
+              z-index: 1000;
+              background: rgba(15, 23, 42, 0.92);
+              backdrop-filter: blur(8px);
+              border: 1px solid rgba(245, 158, 11, 0.5);
+              color: #FFFFFF;
+              padding: 8px 16px;
+              border-radius: 30px;
+              box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+              align-items: center;
+              justify-content: space-between;
+              gap: 12px;
+              max-width: 90%;
+              box-sizing: border-box;
+              transition: all 0.3s ease;
+            "></div>
+
             <div class="map-export-overlay-controls" style="position: absolute; bottom: 16px; left: 16px; z-index: 1000; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+              <button id="toggleMapFullscreenBtn" class="map-export-overlay-btn" style="position: static; background: #1A7C6E; color: #FFFFFF; font-weight: 800;" onclick="toggleMapFullscreen()">
+                ⛶ Full Screen Map
+              </button>
+              <button id="toggleMeasureDistBtn" class="map-export-overlay-btn" style="position: static; background: #D97706; color: #FFFFFF; font-weight: 800; border-color: rgba(255,255,255,0.3);" onclick="toggleDistanceMeasurement()">
+                📏 Measure Distance
+              </button>
               <button id="exportMapPngBtn" class="map-export-overlay-btn" style="position: static;" onclick="exportItineraryMap('png')">
                 📸 Export PNG Map
               </button>
@@ -3743,29 +3892,30 @@
           </div>
         </div>
 
-        <!-- Admin Portal & System Entry -->
+        <!-- AI Tour Assistant Highlight -->
         <div>
           <h4 style="font-size: 12px; font-weight: 800; color: #FFFFFF; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px;">
-            Admin Portal
+            🤖 AI Tour Planner
           </h4>
           <p style="font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.5; margin-bottom: 14px;">
-            Authorized TourCartBD administrators can manage live rates, hotel prices, transport fees, and activity margins.
+            Get instant personalized travel itineraries tailored for your budget and preferences powered by Gemini AI.
           </p>
-          <button type="button" onclick="openPricingModal()" style="
+          <button type="button" onclick="toggleAiTourPlanner()" style="
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            background: rgba(232, 93, 58, 0.15);
-            color: #E85D3A;
-            border: 1px solid rgba(232, 93, 58, 0.3);
+            background: linear-gradient(135deg, #EE3124 0%, #B91C1C 100%);
+            color: #FFFFFF;
+            border: none;
             padding: 10px 16px;
             border-radius: 10px;
             font-size: 12px;
             font-weight: 800;
             cursor: pointer;
+            box-shadow: 0 4px 12px rgba(238,49,36,0.3);
             transition: all 0.2s;
           ">
-            🛡️ Admin Dashboard
+            ✨ Chat with AI Planner
           </button>
         </div>
       </div>
@@ -3786,8 +3936,6 @@
           © 2026 TourCartBD. All Rights Reserved. Crafted for Southeast Bangladesh Tourism.
         </div>
         <div style="display: flex; gap: 16px;">
-          <a href="#" onclick="openAdminAuthModal(); return false;" style="color: rgba(255, 255, 255, 0.4); text-decoration: underline;">Admin Verification</a>
-          <span>·</span>
           <span>bKash / Nagad Verified Partner</span>
         </div>
       </div>
@@ -3911,10 +4059,50 @@
             </a>
           </div>
 
-          <!-- SECTION 5: BOOK BUTTON -->
-          <button onclick="openCheckoutModal()" class="cn-book-btn">
-            🔒 Confirm & Book Tour →
-          </button>
+          <!-- SECTION 5: ACTIONS -->
+          <div style="display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap;">
+            <button onclick="addToGoogleCalendar()" class="cn-cal-btn" style="
+              flex: 1;
+              min-width: 150px;
+              background: linear-gradient(135deg, rgba(66, 133, 244, 0.25), rgba(52, 168, 83, 0.25));
+              border: 1px solid rgba(66, 133, 244, 0.4);
+              color: var(--white);
+              padding: 12px 10px;
+              border-radius: 10px;
+              font-size: 12px;
+              font-weight: 800;
+              cursor: pointer;
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              gap: 6px;
+              transition: var(--transition);
+            ">
+              📅 Add to Google Calendar (.ICS)
+            </button>
+            <button onclick="exportItineraryPdf()" class="cn-export-pdf-btn" style="
+              flex: 1;
+              min-width: 140px;
+              background: rgba(255, 255, 255, 0.08);
+              border: 1px solid rgba(255, 255, 255, 0.2);
+              color: var(--white);
+              padding: 12px 10px;
+              border-radius: 10px;
+              font-size: 12px;
+              font-weight: 800;
+              cursor: pointer;
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              gap: 6px;
+              transition: var(--transition);
+            ">
+              📄 Export PDF
+            </button>
+            <button onclick="openCheckoutModal()" class="cn-book-btn" style="flex: 1.2; min-width: 180px; margin-top: 0;">
+              🔒 Confirm & Book Tour →
+            </button>
+          </div>
 
         </div>
       </div>
@@ -4157,16 +4345,69 @@
           border-color: #1A7C6E !important;
           background: rgba(26, 124, 110, 0.05) !important;
         }
-        /* Cart list inside checkout */
-        .co-cart-row {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          border-bottom: 1px solid #F3F4F6;
-          padding: 10px 0;
+        /* Mobile & Tablet Optimizations */
+        @media (max-width: 640px) {
+          #checkoutModal {
+            padding: 0 !important;
+            align-items: flex-end !important;
+          }
+          .co-modal-container {
+            max-height: 95vh !important;
+            border-radius: 20px 20px 0 0 !important;
+            width: 100% !important;
+          }
+          .co-header {
+            padding: 14px 18px !important;
+          }
+          .co-title {
+            font-size: 18px !important;
+          }
+          .co-body {
+            padding: 16px !important;
+          }
+          .co-step-tabs {
+            padding: 0 4px !important;
+          }
+          .co-step-tab {
+            font-size: 10px !important;
+            padding: 10px 2px !important;
+          }
+          .co-grid-mobile {
+            grid-template-columns: 1fr !important;
+          }
+          .co-col-mobile {
+            grid-column: span 1 !important;
+          }
+          .co-input, .co-select, .co-textarea {
+            padding: 13px 14px !important;
+            font-size: 14px !important;
+          }
+          .co-btn-primary, .co-btn-ghost {
+            padding: 13px 16px !important;
+            font-size: 12px !important;
+            width: 100% !important;
+            justify-content: center !important;
+          }
         }
-        .co-cart-row:last-child {
-          border-bottom: none;
+        .co-date-preset-chip {
+          background: #F3F4F6;
+          border: 1px solid #E5E7EB;
+          color: #374151;
+          font-size: 11px;
+          font-weight: 700;
+          padding: 6px 12px;
+          border-radius: 20px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          user-select: none;
+        }
+        .co-date-preset-chip:hover, .co-date-preset-chip:active {
+          background: #1A7C6E;
+          color: #FFFFFF;
+          border-color: #1A7C6E;
         }
         /* Pulse spinner for submit */
         .spinner {
@@ -4217,7 +4458,17 @@
               <!-- Dynamically populated -->
             </div>
 
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-top: 8px;">
+            <!-- Quick Date Presets -->
+            <div style="margin-top: 8px;">
+              <span style="font-size: 10px; font-weight: 800; color: #6B7280; text-transform: uppercase; letter-spacing: 0.8px; display: block; margin-bottom: 6px;">⚡ Quick Travel Date Presets:</span>
+              <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                <button type="button" onclick="setCheckoutDatePreset('weekend')" class="co-date-preset-chip">📅 Next Weekend (Fri-Sun)</button>
+                <button type="button" onclick="setCheckoutDatePreset('3days')" class="co-date-preset-chip">🚀 3-Day Trip (From Tomorrow)</button>
+                <button type="button" onclick="setCheckoutDatePreset('5days')" class="co-date-preset-chip">🏖️ 5-Day Holiday</button>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-top: 8px;">
               <div>
                 <label class="co-form-label" for="coTravellers">Number of Travellers</label>
                 <input type="number" id="coTravellers" class="co-input" min="1" max="200" value="2" onchange="updateSummary();">
@@ -4254,9 +4505,17 @@
             </div>
 
             <!-- Navigation -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; flex-wrap: wrap; gap: 8px;">
               <button type="button" class="co-btn-ghost" onclick="closeCheckoutModal(null)">← Continue Shopping</button>
-              <button type="button" class="co-btn-primary" onclick="goStep(2)">My Details →</button>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button type="button" onclick="addToGoogleCalendar()" class="co-btn-ghost" style="border-color: #4285F4; color: #1A56DB; background: rgba(66,133,244,0.08);">
+                  📅 Calendar (.ics)
+                </button>
+                <button type="button" onclick="exportItineraryPdf()" class="co-btn-ghost" style="border-color: #1A7C6E; color: #1A7C6E; background: rgba(26,124,110,0.05);">
+                  📄 Export PDF
+                </button>
+                <button type="button" class="co-btn-primary" onclick="goStep(2)">My Details →</button>
+              </div>
             </div>
           </div>
 
@@ -4382,11 +4641,19 @@
             </p>
 
             <!-- Navigation -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; flex-wrap: wrap; gap: 8px;">
               <button type="button" class="co-btn-ghost" onclick="goStep(2)">← Back</button>
-              <button type="button" class="co-btn-primary" id="coSubmitBtn" onclick="submitBooking()" style="background: var(--coral); justify-content: center; min-width: 220px;">
-                🔒 Submit Booking Request
-              </button>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button type="button" onclick="addToGoogleCalendar()" class="co-btn-ghost" style="border-color: #4285F4; color: #1A56DB; background: rgba(66,133,244,0.08);">
+                  📅 Calendar (.ics)
+                </button>
+                <button type="button" onclick="exportItineraryPdf()" class="co-btn-ghost" style="border-color: #1A7C6E; color: #1A7C6E; background: rgba(26,124,110,0.05);">
+                  📄 Export PDF
+                </button>
+                <button type="button" class="co-btn-primary" id="coSubmitBtn" onclick="submitBooking()" style="background: var(--coral); justify-content: center; min-width: 200px;">
+                  🔒 Submit Booking Request
+                </button>
+              </div>
             </div>
           </div>
 
@@ -4427,6 +4694,46 @@
               </div>
 
               <div style="width: 100%; display: flex; flex-direction: column; gap: 10px; margin-top: 8px;">
+                <button type="button" onclick="addToGoogleCalendar()" style="
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  gap: 8px;
+                  background: linear-gradient(135deg, #4285F4, #1A56DB);
+                  color: #FFFFFF;
+                  padding: 13px;
+                  border-radius: 12px;
+                  font-size: 13px;
+                  font-weight: 800;
+                  cursor: pointer;
+                  border: none;
+                  width: 100%;
+                  box-shadow: 0 4px 12px rgba(66, 133, 244, 0.25);
+                  transition: all 0.2s;
+                ">
+                  📅 Add Itinerary to Google Calendar & Download .ICS File
+                </button>
+
+                <button type="button" onclick="exportItineraryPdf()" style="
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  gap: 8px;
+                  background: #1E3A8A;
+                  color: #FFFFFF;
+                  padding: 13px;
+                  border-radius: 12px;
+                  font-size: 13px;
+                  font-weight: 800;
+                  cursor: pointer;
+                  border: none;
+                  width: 100%;
+                  box-shadow: 0 4px 12px rgba(30, 58, 138, 0.2);
+                  transition: all 0.2s;
+                ">
+                  📄 Export Official PDF Itinerary Document
+                </button>
+
                 <a href="#" id="coWhatsAppDirectBtn" target="_blank" style="
                   display: flex;
                   align-items: center;
@@ -4604,331 +4911,204 @@
       </div>
     </div>
 
-    <!-- ADMIN AUTHENTICATION MODAL -->
-    <div id="adminAuthModal" class="popup-overlay" onclick="closeAdminAuthModal(event)" style="
+    <!-- TOUR PLANNING AI CHATBOT DRAWER MODAL -->
+    <div id="aiTourPlannerModal" class="popup-overlay" onclick="closeAiTourPlannerOnOverlay(event)" style="
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.8);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      z-index: 10001;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      z-index: 10005;
       display: none;
       align-items: center;
       justify-content: center;
       padding: 16px;
     ">
       <div style="
-        background: #111827;
+        background: #0F172A;
         color: #FFFFFF;
         width: 100%;
-        max-width: 420px;
-        border-radius: 20px;
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6);
-        padding: 28px;
+        max-width: 720px;
+        height: 85vh;
+        max-height: 750px;
+        border-radius: 24px;
+        border: 1px solid rgba(238, 49, 36, 0.3);
+        box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.7), 0 0 30px rgba(238, 49, 36, 0.15);
         display: flex;
         flex-direction: column;
-        gap: 18px;
+        overflow: hidden;
         position: relative;
       " onclick="event.stopPropagation()">
-        <button type="button" onclick="closeAdminAuthModal(null)" style="
-          position: absolute;
-          top: 16px;
-          right: 16px;
-          background: rgba(255, 255, 255, 0.1);
-          color: #FFF;
-          border: none;
-          width: 32px;
-          height: 32px;
-          border-radius: 50%;
-          font-size: 16px;
-          cursor: pointer;
+
+        <!-- Header -->
+        <div style="
+          padding: 18px 24px;
+          background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
           display: flex;
           align-items: center;
-          justify-content: center;
-        ">✕</button>
-
-        <div style="text-align: center;">
-          <div style="
-            width: 56px;
-            height: 56px;
-            background: rgba(232, 93, 58, 0.15);
-            color: #E85D3A;
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 26px;
-            margin-bottom: 12px;
-          ">🔒</div>
-          <h3 style="font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 900;">Admin Verification</h3>
-          <p style="font-size: 12.5px; color: rgba(255,255,255,0.6); margin-top: 4px;">
-            Pricing Manager is restricted to TourCartBD Admins. Please enter your Admin password to proceed.
-          </p>
-        </div>
-
-        <form onsubmit="handleAdminLoginSubmit(event)" style="display: flex; flex-direction: column; gap: 14px;">
-          <div>
-            <label style="display: block; font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase; margin-bottom: 6px;">Admin Password</label>
-            <input type="password" id="adminPassInput" placeholder="Enter Admin Password (default: admin123)" required style="
-              width: 100%;
-              background: #000000;
-              border: 1px solid rgba(255, 255, 255, 0.2);
-              color: #FFFFFF;
-              padding: 12px 14px;
-              border-radius: 10px;
-              font-size: 14px;
-              outline: none;
-            " />
-          </div>
-
-          <div id="adminAuthError" style="display: none; color: #F87171; font-size: 12px; font-weight: 600; text-align: center;">
-            ❌ Invalid Admin Password. Access Denied.
-          </div>
-
-          <button type="submit" style="
-            background: #E85D3A;
-            color: #FFFFFF;
-            border: none;
-            padding: 12px;
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 800;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            transition: all 0.2s;
-            margin-top: 4px;
-          ">
-            🔓 Unlock Admin Pricing Manager
-          </button>
-        </form>
-
-        <div style="
-          background: rgba(255, 255, 255, 0.04);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          border-radius: 10px;
-          padding: 10px 12px;
-          font-size: 11px;
-          color: rgba(255,255,255,0.5);
-          text-align: center;
+          justify-content: space-between;
+          gap: 16px;
         ">
-          🔑 Default Admin Passcode: <code style="color: #4ADE80; font-family: 'Space Mono', monospace;">admin123</code>
-        </div>
-      </div>
-    </div>
-
-    <!-- PRICING MANAGER & CODE INSTRUCTIONS MODAL -->
-    <div id="pricingManagerModal" class="popup-overlay" onclick="closePricingModal(event)" style="
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.75);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      z-index: 10000;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-    ">
-      <div class="pricing-modal-container" style="
-        background: #111827;
-        color: #FFFFFF;
-        width: 100%;
-        max-width: 880px;
-        max-height: 90vh;
-        border-radius: 20px;
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
-        overflow-y: auto;
-        padding: 24px;
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        gap: 18px;
-      " onclick="event.stopPropagation()">
-        
-        <!-- Header -->
-        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 16px;">
-          <div>
-            <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(232, 93, 58, 0.15); color: #E85D3A; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;">
-              🛡️ TourCartBD Admin Portal
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="
+              width: 44px;
+              height: 44px;
+              background: linear-gradient(135deg, #EE3124 0%, #B91C1C 100%);
+              border-radius: 12px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 22px;
+              box-shadow: 0 4px 12px rgba(238,49,36,0.4);
+            ">🤖</div>
+            <div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <h3 style="font-family: 'Space Mono', monospace; font-size: 16px; font-weight: 800; color: #FFFFFF; margin: 0;">TourCartBD AI Planner</h3>
+                <span style="background: rgba(74, 222, 128, 0.15); color: #4ADE80; font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(74, 222, 128, 0.3);">GEMINI 2.5 LIVE</span>
+              </div>
+              <p style="font-size: 12px; color: #94A3B8; margin: 2px 0 0 0;">Personalized Bangladesh Tour Concierge & Itinerary Generator</p>
             </div>
-            <h2 style="font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 900; color: #FFFFFF;">
-              TourCartBD Admin Dashboard
-            </h2>
-            <p style="font-size: 12.5px; color: rgba(255,255,255,0.6); margin-top: 2px;">
-              Manage live pricing across buses, hotels, local transport, and activities — plus view system code guides and default configuration logs.
-            </p>
           </div>
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <button type="button" onclick="logoutAdmin()" style="
-              background: rgba(239, 68, 68, 0.15);
-              color: #F87171;
-              border: 1px solid rgba(239, 68, 68, 0.3);
+
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <button type="button" onclick="clearAiChatHistory()" style="
+              background: rgba(255,255,255,0.06);
+              color: #CBD5E1;
+              border: 1px solid rgba(255,255,255,0.1);
               padding: 6px 12px;
               border-radius: 8px;
               font-size: 11px;
               font-weight: 700;
               cursor: pointer;
-            ">🔒 Logout Admin</button>
-            <button type="button" onclick="closePricingModal(null)" style="
+            ">↺ Clear</button>
+            <button type="button" onclick="toggleAiTourPlanner()" style="
               background: rgba(255, 255, 255, 0.1);
               color: #FFF;
               border: none;
-              width: 36px;
-              height: 36px;
+              width: 34px;
+              height: 34px;
               border-radius: 50%;
-              font-size: 18px;
+              font-size: 16px;
               cursor: pointer;
               display: flex;
               align-items: center;
               justify-content: center;
-              transition: all 0.2s;
             ">✕</button>
           </div>
         </div>
 
-        <!-- Modal Tabs -->
-        <div style="display: flex; gap: 8px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px;">
-          <button id="pmTabEditorBtn" type="button" onclick="switchPmTab('editor')" style="
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 800;
-            cursor: pointer;
-            border: none;
-            background: #1A7C6E;
-            color: #FFF;
-          ">⚡ Edit Live Prices (UI)</button>
-
-          <button id="pmTabGuideBtn" type="button" onclick="switchPmTab('guide')" style="
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 800;
-            cursor: pointer;
-            border: none;
-            background: rgba(255,255,255,0.08);
-            color: rgba(255,255,255,0.7);
-          ">💡 Code Instructions (How to Update)</button>
+        <!-- Quick Prompt Chips Header -->
+        <div style="
+          padding: 10px 16px;
+          background: rgba(15, 23, 42, 0.8);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+          display: flex;
+          gap: 8px;
+          overflow-x: auto;
+          white-space: nowrap;
+          scrollbar-width: thin;
+        ">
+          <button type="button" onclick="sendAiQuickPrompt('3-day couple trip to Cox\'s Bazar with Inani Beach & Marine Drive sunset under 15,000 BDT per person')" style="background: rgba(238, 49, 36, 0.12); color: #FCA5A5; border: 1px solid rgba(238, 49, 36, 0.25); padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; cursor: pointer; flex-shrink: 0;">🏖️ 3-Day Cox's Bazar Couple Plan</button>
+          <button type="button" onclick="sendAiQuickPrompt('4-day adventure trekking trip in Bandarban including Nilgiri, Boga Lake & Nafakhum')" style="background: rgba(16, 185, 129, 0.12); color: #6EE7B7; border: 1px solid rgba(16, 185, 129, 0.25); padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; cursor: pointer; flex-shrink: 0;">⛰️ 4-Day Bandarban Trekking</button>
+          <button type="button" onclick="sendAiQuickPrompt('3-day Saint Martin coral island weekend trip with fresh seafood & Chera Dwip')" style="background: rgba(56, 189, 248, 0.12); color: #7DD3FC; border: 1px solid rgba(56, 189, 248, 0.25); padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; cursor: pointer; flex-shrink: 0;">🏝️ 3-Day Saint Martin Coral Weekend</button>
+          <button type="button" onclick="sendAiQuickPrompt('3-day Sylhet tea garden & Ratargul swamp forest eco tour for family')" style="background: rgba(245, 158, 11, 0.12); color: #FDE047; border: 1px solid rgba(245, 158, 11, 0.25); padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; cursor: pointer; flex-shrink: 0;">🌿 3-Day Sylhet & Sreemangal Eco Tour</button>
         </div>
 
-        <!-- TAB 1: UI EDITOR -->
-        <div id="pmTabEditor" style="display: flex; flex-direction: column; gap: 20px;">
-          
-          <!-- Category Selector -->
-          <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-            <span style="font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.5); text-transform: uppercase;">Category:</span>
-            <button type="button" onclick="renderPmCategory('bus')" class="pm-cat-btn active" id="pmCatBus" style="padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; border: 1px solid #1A7C6E; background: #1A7C6E; color: #FFF;">🚌 Intercity Bus Fares</button>
-            <button type="button" onclick="renderPmCategory('hotels')" class="pm-cat-btn" id="pmCatHotels" style="padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.7);">🏨 Hotels & Resorts</button>
-            <button type="button" onclick="renderPmCategory('lt')" class="pm-cat-btn" id="pmCatLt" style="padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.7);">🛺 Local Transport</button>
-            <button type="button" onclick="renderPmCategory('activities')" class="pm-cat-btn" id="pmCatActivities" style="padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.7);">🎡 Activity Tickets</button>
+        <!-- Chat Area -->
+        <div id="aiChatMessages" style="
+          flex: 1;
+          padding: 20px;
+          overflow-y: auto;
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          background: #090D16;
+        ">
+          <!-- Initial Welcome Message -->
+          <div style="display: flex; gap: 12px; max-width: 90%;">
+            <div style="width: 36px; height: 36px; background: #EE3124; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;">🤖</div>
+            <div style="background: #1E293B; border: 1px solid rgba(255,255,255,0.08); padding: 14px 18px; border-radius: 16px; border-top-left-radius: 4px; color: #F1F5F9; font-size: 13.5px; line-height: 1.6;">
+              <p style="margin: 0 0 10px 0; font-weight: 800; color: #FFFFFF;">Assalamu Alaikum! Welcome to TourCartBD AI Planner 🇧🇩</p>
+              I am your personal AI travel concierge. Tell me where you'd like to travel in Bangladesh (Cox's Bazar, Bandarban, Saint Martin, Rangamati, Sylhet, etc.), how many days you have, your travel style, and budget!
+              <div style="margin-top: 12px; font-size: 12px; color: #94A3B8; background: rgba(0,0,0,0.3); padding: 10px 12px; border-radius: 8px;">
+                💡 <strong>Try typing:</strong> <em>"Plan a 3 day luxury beach trip to Cox's Bazar for 2 people with 5-star hotel and jet ski activities"</em>
+              </div>
+            </div>
           </div>
+        </div>
 
-          <!-- Dynamic Editor Grid -->
-          <div id="pmEditorGrid" style="
-            background: rgba(255,255,255,0.02);
-            border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 14px;
-            padding: 16px;
-            max-height: 380px;
-            overflow-y: auto;
+        <!-- Typing Indicator Container -->
+        <div id="aiTypingIndicator" style="display: none; padding: 8px 24px; background: #090D16; color: #94A3B8; font-size: 12px; font-weight: 700;">
+          <span style="display: inline-block; animation: pulse 1s infinite;">🤖 TourCartBD AI is crafting your customized itinerary...</span>
+        </div>
+
+        <!-- Input Bar -->
+        <form onsubmit="handleAiChatSubmit(event)" style="
+          padding: 16px 20px;
+          background: #0F172A;
+          border-top: 1px solid rgba(255,255,255,0.1);
+          display: flex;
+          gap: 10px;
+          align-items: center;
+        ">
+          <input type="text" id="aiChatInput" placeholder="Ask for a customized tour plan (e.g. 3 days in Cox's Bazar for family...)" style="
+            flex: 1;
+            background: #1E293B;
+            border: 1px solid rgba(255,255,255,0.15);
+            color: #FFFFFF;
+            padding: 12px 18px;
+            border-radius: 30px;
+            font-size: 13.5px;
+            outline: none;
+            transition: all 0.2s;
+          " autocomplete="off" />
+          
+          <button type="submit" id="aiChatSendBtn" style="
+            background: linear-gradient(135deg, #EE3124 0%, #B91C1C 100%);
+            color: #FFFFFF;
+            border: none;
+            padding: 12px 22px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(238,49,36,0.35);
             display: flex;
-            flex-direction: column;
-            gap: 12px;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
           ">
-            <!-- Populated dynamically by JavaScript -->
-          </div>
+            <span>Send</span> ✈️
+          </button>
+        </form>
 
-          <!-- Editor Actions -->
-          <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 16px;">
-            <button type="button" onclick="resetPricesToDefaults()" style="
-              background: rgba(239, 68, 68, 0.15);
-              color: #F87171;
-              border: 1px solid rgba(239, 68, 68, 0.3);
-              padding: 10px 18px;
-              border-radius: 10px;
-              font-size: 12px;
-              font-weight: 800;
-              cursor: pointer;
-            ">
-              🔄 Reset to Factory Defaults
-            </button>
-
-            <button type="button" onclick="saveCustomPricesFromModal()" style="
-              background: #1A7C6E;
-              color: #FFF;
-              border: none;
-              padding: 10px 22px;
-              border-radius: 10px;
-              font-size: 12px;
-              font-weight: 800;
-              text-transform: uppercase;
-              letter-spacing: 0.5px;
-              cursor: pointer;
-              box-shadow: 0 4px 12px rgba(26, 124, 110, 0.3);
-            ">
-              💾 Save & Apply New Prices
-            </button>
-          </div>
-        </div>
-
-        <!-- TAB 2: CODE GUIDE -->
-        <div id="pmTabGuide" style="display: none; flex-direction: column; gap: 16px; color: rgba(255,255,255,0.85); font-size: 13px; line-height: 1.6;">
-          
-          <div style="background: rgba(26, 124, 110, 0.15); border-left: 4px solid #1A7C6E; padding: 14px 16px; border-radius: 0 10px 10px 0;">
-            <h4 style="color: #4ADE80; font-size: 14px; font-weight: 800; margin-bottom: 4px;">📖 Developer Instructions: How to Update Pricing in Code</h4>
-            <p>Pricing data in TourCartBD is stored directly in structured arrays inside <code>/index.html</code>. Follow the guide below to update default prices permanently in the code.</p>
-          </div>
-
-          <!-- Section 1: Bus Fares -->
-          <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px 16px;">
-            <h5 style="color: #FCD34D; font-size: 13px; font-weight: 800; margin-bottom: 6px;">1. Intercity Bus Fares</h5>
-            <p>Open <code>/index.html</code> and find <code>ORIGINAL_BUS_CLASSES</code> (around line 4710). Each coach tier (AC, Sleeper, Business, Non-AC) defines fares per route in <code>priceRange</code>:</p>
-            <pre style="background: #000; padding: 10px; border-radius: 8px; color: #38BDF8; font-family: 'Space Mono', monospace; font-size: 11px; overflow-x: auto; margin-top: 8px;">
-'priceRange': {
-  'dhaka-cox': 1200,      // BDT fare for Dhaka → Cox's Bazar
-  'dhaka-bandarban': 1000,
-  'dhaka-rangamati': 1100,
-  'ctg-cox': 500,
-  'dhaka-ctg': 700,
-  'dhaka-khagra': 1050
-}</pre>
-          </div>
-
-          <!-- Section 2: Hotel Rates -->
-          <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px 16px;">
-            <h5 style="color: #FCD34D; font-size: 13px; font-weight: 800; margin-bottom: 6px;">2. Hotel & Resort Nightly Rates</h5>
-            <p>Open <code>/index.html</code> and locate <code>ORIGINAL_HOTELS</code> (around line 4500). Edit the <code>pricePerNight</code> property for any hotel:</p>
-            <pre style="background: #000; padding: 10px; border-radius: 8px; color: #38BDF8; font-family: 'Space Mono', monospace; font-size: 11px; overflow-x: auto; margin-top: 8px;">
-{ id: '1', name: "Sea Pearl Beach Resort", pricePerNight: 12000, ... }</pre>
-          </div>
-
-          <!-- Section 3: Local Transport -->
-          <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px 16px;">
-            <h5 style="color: #FCD34D; font-size: 13px; font-weight: 800; margin-bottom: 6px;">3. Local Transport Fares</h5>
-            <p>Find <code>ORIGINAL_LOCAL_TRANSPORT</code> (around line 4780). Update the <code>price</code> field:</p>
-            <pre style="background: #000; padding: 10px; border-radius: 8px; color: #38BDF8; font-family: 'Space Mono', monospace; font-size: 11px; overflow-x: auto; margin-top: 8px;">
-{ id: 'lt1', name: "CNG Auto-rickshaw — Full Day", price: 1200, unit: 'per vehicle/day' }</pre>
-          </div>
-
-          <!-- Section 4: Activities -->
-          <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px 16px;">
-            <h5 style="color: #FCD34D; font-size: 13px; font-weight: 800; margin-bottom: 6px;">4. Activity Ticket Prices</h5>
-            <p>Find <code>ORIGINAL_ACTIVITIES</code> (around line 4240). Update the <code>price</code> field:</p>
-            <pre style="background: #000; padding: 10px; border-radius: 8px; color: #38BDF8; font-family: 'Space Mono', monospace; font-size: 11px; overflow-x: auto; margin-top: 8px;">
-{ id: 1, name: "Parasailing Experience", price: 1500, ... }</pre>
-          </div>
-
-          <!-- Section 5: Browser Storage -->
-          <div style="background: rgba(232, 93, 58, 0.1); border: 1px solid rgba(232, 93, 58, 0.3); border-radius: 12px; padding: 14px 16px; color: #F87171;">
-            <h5 style="font-size: 13px; font-weight: 800; margin-bottom: 4px;">⚠️ Note on LocalStorage Caching</h5>
-            <p>TourCartBD caches user pricing edits in browser <code>localStorage</code> under keys <code>tcbd_bus_classes</code>, <code>tcbd_hotels</code>, <code>tcbd_local_transport</code>, and <code>tcbd_activities</code>. If code edits do not reflect immediately, click <strong>"🔄 Reset to Factory Defaults"</strong> in Tab 1 or clear browser site data.</p>
-          </div>
-
-        </div>
       </div>
+    </div>
+
+    <!-- FLOATING AI TOUR PLANNER BUTTON -->
+    <div id="aiFloatingTriggerBtn" onclick="toggleAiTourPlanner()" style="
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 9998;
+      background: linear-gradient(135deg, #EE3124 0%, #B91C1C 100%);
+      color: #FFFFFF;
+      padding: 12px 20px;
+      border-radius: 30px;
+      border: 2px solid rgba(255,255,255,0.3);
+      box-shadow: 0 10px 30px rgba(238,49,36,0.45);
+      font-weight: 800;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    ">
+      <span style="font-size: 18px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">🤖</span>
+      <span>AI Tour Planner</span>
+      <span style="background: rgba(255,255,255,0.25); color: #FFF; font-size: 9.5px; font-weight: 900; padding: 2px 6px; border-radius: 10px; text-transform: uppercase;">New</span>
     </div>
 
     <!-- TOAST NOTIFICATIONS (hidden for now) -->
@@ -5617,369 +5797,165 @@
       }
 
       // PRICING MANAGER & ADMIN AUTHENTICATION CONTROLLERS
-      let pmCurrentCat = 'bus';
-      let isAdminAuthenticated = sessionStorage.getItem('tcbd_admin_logged_in') === 'true';
+      // =========================================================
+      // TOUR PLANNING AI CHATBOT CONTROLLERS & GEMINI API INTEGRATION
+      // =========================================================
+      let aiChatHistory = [];
 
-      function openPricingModal() {
-        if (!isAdminAuthenticated) {
-          openAdminAuthModal();
-          return;
-        }
-
-        const modal = document.getElementById('pricingManagerModal');
+      function toggleAiTourPlanner() {
+        const modal = document.getElementById('aiTourPlannerModal');
         if (!modal) return;
-        switchPmTab('editor');
-        renderPmCategory('bus');
-        modal.style.display = 'flex';
-      }
-
-      function openAdminAuthModal() {
-        const modal = document.getElementById('adminAuthModal');
-        if (modal) {
-          const passInp = document.getElementById('adminPassInput');
-          if (passInp) passInp.value = '';
-          const errEl = document.getElementById('adminAuthError');
-          if (errEl) errEl.style.display = 'none';
+        if (modal.style.display === 'flex') {
+          modal.style.display = 'none';
+        } else {
           modal.style.display = 'flex';
-          setTimeout(() => { if (passInp) passInp.focus(); }, 100);
+          const input = document.getElementById('aiChatInput');
+          if (input) setTimeout(() => input.focus(), 150);
         }
       }
 
-      function closeAdminAuthModal(e) {
-        if (e && e.target !== document.getElementById('adminAuthModal')) return;
-        const modal = document.getElementById('adminAuthModal');
-        if (modal) modal.style.display = 'none';
+      function closeAiTourPlannerOnOverlay(e) {
+        if (e && e.target === document.getElementById('aiTourPlannerModal')) {
+          toggleAiTourPlanner();
+        }
       }
 
-      function handleAdminLoginSubmit(e) {
+      function clearAiChatHistory() {
+        aiChatHistory = [];
+        const msgContainer = document.getElementById('aiChatMessages');
+        if (msgContainer) {
+          msgContainer.innerHTML = `
+            <div style="display: flex; gap: 12px; max-width: 90%;">
+              <div style="width: 36px; height: 36px; background: #EE3124; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;">🤖</div>
+              <div style="background: #1E293B; border: 1px solid rgba(255,255,255,0.08); padding: 14px 18px; border-radius: 16px; border-top-left-radius: 4px; color: #F1F5F9; font-size: 13.5px; line-height: 1.6;">
+                <p style="margin: 0 0 10px 0; font-weight: 800; color: #FFFFFF;">Chat history cleared!</p>
+                How else can I assist with your travel plans in Bangladesh?
+              </div>
+            </div>
+          `;
+        }
+      }
+
+      function sendAiQuickPrompt(promptText) {
+        const input = document.getElementById('aiChatInput');
+        if (input) {
+          input.value = promptText;
+          handleAiChatSubmit(new Event('submit'));
+        }
+      }
+
+      async function handleAiChatSubmit(e) {
         if (e) e.preventDefault();
-        const passInp = document.getElementById('adminPassInput');
-        const pass = passInp ? passInp.value : '';
-        const savedPass = localStorage.getItem('tcbd_admin_password') || 'admin123';
-        
-        if (pass === savedPass || pass === 'admin123' || pass === 'tourcartbd2026') {
-          isAdminAuthenticated = true;
-          sessionStorage.setItem('tcbd_admin_logged_in', 'true');
-          closeAdminAuthModal(null);
-          showToast("🔓 Welcome Admin! Pricing Manager Unlocked.");
-          openPricingModal();
-        } else {
-          const errEl = document.getElementById('adminAuthError');
-          if (errEl) errEl.style.display = 'block';
-          showToast("⛔ Invalid Admin Password. Access Denied.");
-        }
-      }
+        const input = document.getElementById('aiChatInput');
+        if (!input) return;
+        const query = input.value.trim();
+        if (!query) return;
 
-      function logoutAdmin() {
-        isAdminAuthenticated = false;
-        sessionStorage.removeItem('tcbd_admin_logged_in');
-        closePricingModal(null);
-        showToast("🔒 Logged out of Admin Mode.");
-      }
+        // Clear input
+        input.value = '';
 
-      function closePricingModal(e) {
-        if (e && e.target !== document.getElementById('pricingManagerModal')) return;
-        const modal = document.getElementById('pricingManagerModal');
-        if (modal) modal.style.display = 'none';
-      }
+        // Append User Message to UI
+        appendAiChatMessage('user', query);
 
-      function switchPmTab(tab) {
-        const editorEl = document.getElementById('pmTabEditor');
-        const guideEl = document.getElementById('pmTabGuide');
-        const editorBtn = document.getElementById('pmTabEditorBtn');
-        const guideBtn = document.getElementById('pmTabGuideBtn');
+        // Add to history
+        aiChatHistory.push({ role: 'user', content: query });
 
-        if (tab === 'editor') {
-          if (editorEl) editorEl.style.display = 'flex';
-          if (guideEl) guideEl.style.display = 'none';
-          if (editorBtn) { editorBtn.style.background = '#1A7C6E'; editorBtn.style.color = '#FFF'; }
-          if (guideBtn) { guideBtn.style.background = 'rgba(255,255,255,0.08)'; guideBtn.style.color = 'rgba(255,255,255,0.7)'; }
-        } else {
-          if (editorEl) editorEl.style.display = 'none';
-          if (guideEl) guideEl.style.display = 'flex';
-          if (guideBtn) { guideBtn.style.background = '#1A7C6E'; guideBtn.style.color = '#FFF'; }
-          if (editorBtn) { editorBtn.style.background = 'rgba(255,255,255,0.08)'; editorBtn.style.color = 'rgba(255,255,255,0.7)'; }
-        }
-      }
+        // Show typing indicator
+        const typingIndicator = document.getElementById('aiTypingIndicator');
+        if (typingIndicator) typingIndicator.style.display = 'block';
 
-      function renderPmCategory(cat) {
-        pmCurrentCat = cat;
-        
-        ['bus', 'hotels', 'lt', 'activities'].forEach(c => {
-          const btn = document.getElementById('pmCat' + c.charAt(0).toUpperCase() + c.slice(1));
-          if (btn) {
-            if (c === cat) {
-              btn.style.background = '#1A7C6E';
-              btn.style.color = '#FFF';
-              btn.style.borderColor = '#1A7C6E';
-            } else {
-              btn.style.background = 'rgba(255,255,255,0.05)';
-              btn.style.color = 'rgba(255,255,255,0.7)';
-              btn.style.borderColor = 'rgba(255,255,255,0.1)';
-            }
-          }
-        });
+        // Scroll chat to bottom
+        scrollAiChatToBottom();
 
-        const grid = document.getElementById('pmEditorGrid');
-        if (!grid) return;
-
-        if (cat === 'bus') {
-          grid.innerHTML = BUS_CLASSES.map(b => {
-            return `
-              <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06);">
-                <div style="font-weight: 800; font-size: 13px; color: #FCD34D; margin-bottom: 8px;">
-                  ${b.icon} ${b.name}
-                </div>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px;">
-                  ${Object.keys(b.priceRange).map(routeKey => {
-                    const routeObj = BUS_ROUTES.find(r => r.id === routeKey);
-                    const label = routeObj ? routeObj.label : routeKey;
-                    return `
-                      <div style="display: flex; flex-direction: column; gap: 2px;">
-                        <span style="font-size: 10px; color: rgba(255,255,255,0.5);">${label}</span>
-                        <input type="number" id="pm_bus_${b.id}_${routeKey}" value="${b.priceRange[routeKey]}" style="
-                          background: #000;
-                          border: 1px solid rgba(255,255,255,0.2);
-                          color: #4ADE80;
-                          padding: 6px 10px;
-                          border-radius: 6px;
-                          font-family: 'Space Mono', monospace;
-                          font-size: 12px;
-                          font-weight: 700;
-                        " />
-                      </div>
-                    `;
-                  }).join('')}
-                </div>
-              </div>
-            `;
-          }).join('');
-
-        } else if (cat === 'hotels') {
-          grid.innerHTML = `
-            <div style="margin-bottom: 8px;">
-              <input type="text" id="pmHotelSearch" placeholder="🔍 Search hotel name..." oninput="filterPmHotels(this.value)" style="
-                width: 100%;
-                background: #000;
-                border: 1px solid rgba(255,255,255,0.2);
-                color: #FFF;
-                padding: 8px 12px;
-                border-radius: 8px;
-                font-size: 12px;
-              " />
-            </div>
-            <div id="pmHotelListInner" style="display: flex; flex-direction: column; gap: 8px;">
-              ${renderPmHotelListItems(HOTELS)}
-            </div>
-          `;
-
-        } else if (cat === 'lt') {
-          grid.innerHTML = LOCAL_TRANSPORT.map(lt => {
-            return `
-              <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; background: rgba(255,255,255,0.03); padding: 10px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);">
-                <div>
-                  <div style="font-size: 13px; font-weight: 800; color: #FFF;">${lt.icon} ${lt.name}</div>
-                  <span style="font-size: 10px; color: rgba(255,255,255,0.5);">📍 ${getDestName(lt.dest)} (${lt.unit})</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 6px;">
-                  <span style="font-size: 11px; color: rgba(255,255,255,0.5);">৳</span>
-                  <input type="number" id="pm_lt_${lt.id}" value="${lt.price}" style="
-                    width: 100px;
-                    background: #000;
-                    border: 1px solid rgba(255,255,255,0.2);
-                    color: #4ADE80;
-                    padding: 6px 10px;
-                    border-radius: 6px;
-                    font-family: 'Space Mono', monospace;
-                    font-size: 12px;
-                    font-weight: 700;
-                  " />
-                </div>
-              </div>
-            `;
-          }).join('');
-
-        } else if (cat === 'activities') {
-          grid.innerHTML = `
-            <div style="margin-bottom: 8px;">
-              <input type="text" id="pmActSearch" placeholder="🔍 Search activity name..." oninput="filterPmActivities(this.value)" style="
-                width: 100%;
-                background: #000;
-                border: 1px solid rgba(255,255,255,0.2);
-                color: #FFF;
-                padding: 8px 12px;
-                border-radius: 8px;
-                font-size: 12px;
-              " />
-            </div>
-            <div id="pmActListInner" style="display: flex; flex-direction: column; gap: 8px;">
-              ${renderPmActListItems(ACTIVITIES)}
-            </div>
-          `;
-        }
-      }
-
-      function renderPmHotelListItems(list) {
-        return list.map(h => `
-          <div class="pm-hotel-item" data-name="${h.name.toLowerCase()}" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; background: rgba(255,255,255,0.03); padding: 10px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);">
-            <div>
-              <div style="font-size: 12.5px; font-weight: 800; color: #FFF;">${renderIcon(h.icon, '16px', '3px')} ${h.name}</div>
-              <span style="font-size: 10px; color: rgba(255,255,255,0.5);">📍 ${getDestName(h.dest)} • Tier: ${h.tier}</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 6px;">
-              <span style="font-size: 11px; color: rgba(255,255,255,0.5);">৳/night</span>
-              <input type="number" id="pm_hotel_${h.id}" value="${h.pricePerNight}" style="
-                width: 110px;
-                background: #000;
-                border: 1px solid rgba(255,255,255,0.2);
-                color: #4ADE80;
-                padding: 6px 10px;
-                border-radius: 6px;
-                font-family: 'Space Mono', monospace;
-                font-size: 12px;
-                font-weight: 700;
-              " />
-            </div>
-          </div>
-        `).join('');
-      }
-
-      function filterPmHotels(val) {
-        const query = val.toLowerCase().trim();
-        const items = document.querySelectorAll('.pm-hotel-item');
-        items.forEach(el => {
-          const name = el.getAttribute('data-name') || '';
-          el.style.display = name.includes(query) ? 'flex' : 'none';
-        });
-      }
-
-      function renderPmActListItems(list) {
-        return list.map(a => `
-          <div class="pm-act-item" data-name="${a.name.toLowerCase()}" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; background: rgba(255,255,255,0.03); padding: 10px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);">
-            <div>
-              <div style="font-size: 12.5px; font-weight: 800; color: #FFF;">${renderIcon(a.icon, '16px', '3px')} ${a.name}</div>
-              <span style="font-size: 10px; color: rgba(255,255,255,0.5);">📍 ${getDestName(a.dest)} • ${a.cat}</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 6px;">
-              <span style="font-size: 11px; color: rgba(255,255,255,0.5);">৳</span>
-              <input type="number" id="pm_act_${a.id}" value="${a.price}" style="
-                width: 100px;
-                background: #000;
-                border: 1px solid rgba(255,255,255,0.2);
-                color: #4ADE80;
-                padding: 6px 10px;
-                border-radius: 6px;
-                font-family: 'Space Mono', monospace;
-                font-size: 12px;
-                font-weight: 700;
-              " />
-            </div>
-          </div>
-        `).join('');
-      }
-
-      function filterPmActivities(val) {
-        const query = val.toLowerCase().trim();
-        const items = document.querySelectorAll('.pm-act-item');
-        items.forEach(el => {
-          const name = el.getAttribute('data-name') || '';
-          el.style.display = name.includes(query) ? 'flex' : 'none';
-        });
-      }
-
-      function saveCustomPricesFromModal() {
-        if (!isAdminAuthenticated) {
-          showToast("⛔ Access Denied: Only authenticated admins can modify pricing!");
-          openAdminAuthModal();
-          return;
-        }
-
-        if (pmCurrentCat === 'bus') {
-          BUS_CLASSES.forEach(b => {
-            Object.keys(b.priceRange).forEach(routeKey => {
-              const inp = document.getElementById(`pm_bus_${b.id}_${routeKey}`);
-              if (inp && inp.value !== '') {
-                b.priceRange[routeKey] = parseInt(inp.value) || b.priceRange[routeKey];
+        try {
+          // Call server backend proxy
+          const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              messages: aiChatHistory,
+              context: {
+                currentTrip: typeof currentTrip !== 'undefined' ? currentTrip : null,
+                selectedRoute: typeof selectedRoute !== 'undefined' ? selectedRoute : null,
+                cartCount: typeof cart !== 'undefined' ? cart.length : 0
               }
-            });
+            })
           });
-          localStorage.setItem('tcbd_bus_classes', JSON.stringify(BUS_CLASSES));
 
-        } else if (pmCurrentCat === 'hotels') {
-          HOTELS.forEach(h => {
-            const inp = document.getElementById(`pm_hotel_${h.id}`);
-            if (inp && inp.value !== '') {
-              h.pricePerNight = parseInt(inp.value) || h.pricePerNight;
-            }
-          });
-          localStorage.setItem('tcbd_hotels', JSON.stringify(HOTELS));
-
-        } else if (pmCurrentCat === 'lt') {
-          LOCAL_TRANSPORT.forEach(lt => {
-            const inp = document.getElementById(`pm_lt_${lt.id}`);
-            if (inp && inp.value !== '') {
-              lt.price = parseInt(inp.value) || lt.price;
-            }
-          });
-          localStorage.setItem('tcbd_local_transport', JSON.stringify(LOCAL_TRANSPORT));
-
-        } else if (pmCurrentCat === 'activities') {
-          ACTIVITIES.forEach(a => {
-            const inp = document.getElementById(`pm_act_${a.id}`);
-            if (inp && inp.value !== '') {
-              a.price = parseInt(inp.value) || a.price;
-            }
-          });
-          localStorage.setItem('tcbd_activities', JSON.stringify(ACTIVITIES));
-        }
-
-        // Update live cart prices if present
-        cart.forEach(item => {
-          if (item.cat === 'hotel' && item.id.startsWith('hotel-')) {
-            const hId = item.id.replace('hotel-', '');
-            const h = HOTELS.find(x => x.id === hId);
-            if (h) item.price = h.pricePerNight * (item.nights || nightsCount);
-          } else if (item.cat === 'transport' && item.id.startsWith('lt-')) {
-            const ltId = item.id.replace('lt-', '');
-            const lt = LOCAL_TRANSPORT.find(x => x.id === ltId);
-            if (lt) item.price = lt.price;
-          } else if (item.cat === 'bus' && selectedRoute && selectedBusType) {
-            const busObj = BUS_CLASSES.find(b => b.id === selectedBusType);
-            if (busObj && busObj.priceRange[selectedRoute]) {
-              item.price = busObj.priceRange[selectedRoute];
-            }
-          } else if (typeof item.id === 'number') {
-            const act = ACTIVITIES.find(a => a.id === item.id);
-            if (act) item.price = act.price;
+          const data = await response.json();
+          if (data.reply) {
+            aiChatHistory.push({ role: 'model', content: data.reply });
+            appendAiChatMessage('assistant', data.reply);
+          } else {
+            appendAiChatMessage('assistant', 'Sorry, I encountered an issue generating your plan. Please try again!');
           }
-        });
-
-        renderAll();
-        updateCartUI();
-        showToast("✓ Prices updated and applied to live itinerary!");
+        } catch (err) {
+          console.error('AI Chat Error:', err);
+          appendAiChatMessage('assistant', 'I am currently unable to reach the travel server. Please check your connection or try again in a moment.');
+        } finally {
+          if (typingIndicator) typingIndicator.style.display = 'none';
+          scrollAiChatToBottom();
+        }
       }
 
-      function resetPricesToDefaults() {
-        if (!isAdminAuthenticated) {
-          showToast("⛔ Access Denied: Only authenticated admins can reset pricing!");
-          openAdminAuthModal();
-          return;
+      function appendAiChatMessage(role, text) {
+        const container = document.getElementById('aiChatMessages');
+        if (!container) return;
+
+        const msgDiv = document.createElement('div');
+        msgDiv.style.display = 'flex';
+        msgDiv.style.gap = '12px';
+        msgDiv.style.maxWidth = '90%';
+
+        if (role === 'user') {
+          msgDiv.style.alignSelf = 'flex-end';
+          msgDiv.style.flexDirection = 'row-reverse';
+          msgDiv.innerHTML = `
+            <div style="width: 36px; height: 36px; background: rgba(255,255,255,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;">👤</div>
+            <div style="background: #EE3124; color: #FFFFFF; padding: 12px 16px; border-radius: 16px; border-top-right-radius: 4px; font-size: 13.5px; line-height: 1.5; font-weight: 500;">
+              ${escapeHtml(text)}
+            </div>
+          `;
+        } else {
+          msgDiv.style.alignSelf = 'flex-start';
+          // Format markdown bold/lists simply
+          const formattedText = formatAiMarkdown(text);
+          msgDiv.innerHTML = `
+            <div style="width: 36px; height: 36px; background: #EE3124; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;">🤖</div>
+            <div style="background: #1E293B; border: 1px solid rgba(255,255,255,0.08); padding: 14px 18px; border-radius: 16px; border-top-left-radius: 4px; color: #F1F5F9; font-size: 13.5px; line-height: 1.6;">
+              ${formattedText}
+            </div>
+          `;
         }
 
-        localStorage.removeItem('tcbd_bus_classes');
-        localStorage.removeItem('tcbd_hotels');
-        localStorage.removeItem('tcbd_local_transport');
-        localStorage.removeItem('tcbd_activities');
+        container.appendChild(msgDiv);
+        scrollAiChatToBottom();
+      }
 
-        if (typeof ORIGINAL_BUS_CLASSES !== 'undefined') BUS_CLASSES = JSON.parse(JSON.stringify(ORIGINAL_BUS_CLASSES));
-        if (typeof ORIGINAL_HOTELS !== 'undefined') HOTELS = JSON.parse(JSON.stringify(ORIGINAL_HOTELS));
-        if (typeof ORIGINAL_LOCAL_TRANSPORT !== 'undefined') LOCAL_TRANSPORT = JSON.parse(JSON.stringify(ORIGINAL_LOCAL_TRANSPORT));
-        if (typeof ORIGINAL_ACTIVITIES !== 'undefined') ACTIVITIES = JSON.parse(JSON.stringify(ORIGINAL_ACTIVITIES));
+      function formatAiMarkdown(txt) {
+        if (!txt) return '';
+        let html = txt
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+          .replace(/\*(.*?)\*/g, '<em>$1</em>')
+          .replace(/`([^`]+)`/g, '<code style="background: rgba(0,0,0,0.4); padding: 2px 6px; border-radius: 4px; color: #38BDF8; font-family: monospace; font-size: 12px;">$1</code>')
+          .replace(/\n\n/g, '<br/><br/>')
+          .replace(/\n/g, '<br/>');
+        return html;
+      }
 
-        renderPmCategory(pmCurrentCat);
-        renderAll();
-        updateCartUI();
-        showToast("🔄 Reset all prices to factory defaults!");
+      function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      }
+
+      function scrollAiChatToBottom() {
+        const container = document.getElementById('aiChatMessages');
+        if (container) {
+          container.scrollTop = container.scrollHeight;
+        }
       }
       // Close when clicking outside
       document.addEventListener('click', function(e) {
@@ -8784,6 +8760,702 @@
         }
       }
 
+      // FULL SCREEN MAP CONTROLLER
+      let isMapFullscreen = false;
+
+      function toggleMapFullscreen() {
+        const grid = document.getElementById('mapLayoutGrid') || document.querySelector('.map-layout-grid');
+        const overlayBtn = document.getElementById('toggleMapFullscreenBtn');
+        const topBtn = document.getElementById('mapTopFullscreenBtn');
+
+        if (!grid) return;
+
+        isMapFullscreen = !isMapFullscreen;
+
+        if (isMapFullscreen) {
+          grid.classList.add('is-fullscreen');
+          document.body.style.overflow = 'hidden';
+
+          if (overlayBtn) overlayBtn.innerHTML = '🗗 Exit Full Screen';
+          if (topBtn) topBtn.innerHTML = '🗗 Exit Full Screen';
+
+          if (grid.requestFullscreen) {
+            grid.requestFullscreen().catch(() => {});
+          } else if (grid.webkitRequestFullscreen) {
+            grid.webkitRequestFullscreen().catch(() => {});
+          }
+
+          showToast('🗺️ Map expanded to Full Screen mode. Press ESC or click "Exit Full Screen" to restore.');
+        } else {
+          grid.classList.remove('is-fullscreen');
+          document.body.style.overflow = '';
+
+          if (overlayBtn) overlayBtn.innerHTML = '⛶ Full Screen Map';
+          if (topBtn) topBtn.innerHTML = '⛶ Full Screen Map';
+
+          if (document.fullscreenElement && document.exitFullscreen) {
+            document.exitFullscreen().catch(() => {});
+          }
+
+          showToast('Map returned to normal view.');
+        }
+
+        // Trigger Leaflet map invalidateSize so map tiles fill container smoothly
+        setTimeout(() => {
+          if (mapObj) {
+            mapObj.invalidateSize();
+          }
+        }, 120);
+      }
+
+      // Sync fullscreen exit when browser native fullscreen changes (e.g. user presses ESC)
+      document.addEventListener('fullscreenchange', () => {
+        if (!document.fullscreenElement && isMapFullscreen) {
+          isMapFullscreen = false;
+          const grid = document.getElementById('mapLayoutGrid') || document.querySelector('.map-layout-grid');
+          if (grid) grid.classList.remove('is-fullscreen');
+          document.body.style.overflow = '';
+          const overlayBtn = document.getElementById('toggleMapFullscreenBtn');
+          const topBtn = document.getElementById('mapTopFullscreenBtn');
+          if (overlayBtn) overlayBtn.innerHTML = '⛶ Full Screen Map';
+          if (topBtn) topBtn.innerHTML = '⛶ Full Screen Map';
+          if (mapObj) mapObj.invalidateSize();
+        }
+      });
+
+      // LEAFLET MAP DISTANCE MEASUREMENT TOOL
+      let isMeasuringMode = false;
+      let measurePoints = []; // [{ latlng, marker }]
+      let measurePolyline = null;
+      let measurePopup = null;
+
+      function toggleDistanceMeasurement(forceState) {
+        if (typeof forceState === 'boolean') {
+          isMeasuringMode = forceState;
+        } else {
+          isMeasuringMode = !isMeasuringMode;
+        }
+
+        const btn = document.getElementById('toggleMeasureDistBtn');
+        const banner = document.getElementById('mapMeasureBanner');
+
+        if (isMeasuringMode) {
+          if (btn) {
+            btn.style.background = '#DC2626';
+            btn.style.borderColor = '#EF4444';
+            btn.innerHTML = '🛑 Exit Measure Mode';
+          }
+          if (banner) {
+            banner.style.display = 'flex';
+            banner.innerHTML = `
+              <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 800;">
+                <span>📏 Distance Tool Active:</span>
+                <span id="measureBannerStatus" style="color: #FDE047;">Click anywhere on the map to set Point A 📍</span>
+              </div>
+              <button type="button" onclick="resetMeasurePoints()" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: #fff; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 800; cursor: pointer;">
+                ↺ Reset
+              </button>
+            `;
+          }
+
+          if (mapObj) {
+            mapObj.getContainer().style.cursor = 'crosshair';
+            mapObj.on('click', handleMeasureMapClick);
+          }
+
+          showToast('📏 Distance Tool Active! Click two points on the map to measure straight-line distance in kilometers.');
+        } else {
+          resetMeasurePoints();
+
+          if (btn) {
+            btn.style.background = '#D97706';
+            btn.style.borderColor = 'rgba(255,255,255,0.3)';
+            btn.innerHTML = '📏 Measure Distance';
+          }
+          if (banner) {
+            banner.style.display = 'none';
+          }
+
+          if (mapObj) {
+            mapObj.getContainer().style.cursor = '';
+            mapObj.off('click', handleMeasureMapClick);
+          }
+
+          showToast('Distance measurement tool turned off.');
+        }
+      }
+
+      function handleMeasureMapClick(e) {
+        if (!isMeasuringMode || !mapObj) return;
+
+        const latlng = e.latlng;
+        if (!latlng) return;
+
+        if (measurePoints.length >= 2) {
+          // If already has 2 points, start a new measurement from point A
+          resetMeasurePoints();
+        }
+
+        const isFirst = measurePoints.length === 0;
+        const label = isFirst ? 'Point A' : 'Point B';
+        const color = isFirst ? '#2563EB' : '#DC2626';
+
+        // Custom divIcon marker pin
+        const icon = L.divIcon({
+          className: 'measure-pin-marker',
+          html: `
+            <div style="
+              background: ${color};
+              color: #FFFFFF;
+              font-weight: 900;
+              font-size: 11px;
+              padding: 4px 8px;
+              border-radius: 12px;
+              border: 2px solid #FFFFFF;
+              box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+              white-space: nowrap;
+              display: flex;
+              align-items: center;
+              gap: 4px;
+              transform: translate(-50%, -100%);
+              font-family: 'Space Mono', monospace;
+            ">
+              📍 ${label}
+            </div>
+          `,
+          iconSize: [60, 24],
+          iconAnchor: [30, 24]
+        });
+
+        const marker = L.marker(latlng, { icon: icon }).addTo(mapObj);
+        measurePoints.push({ latlng, marker });
+
+        const statusEl = document.getElementById('measureBannerStatus');
+
+        if (measurePoints.length === 1) {
+          if (statusEl) {
+            statusEl.innerHTML = `Point A set [${latlng.lat.toFixed(3)}, ${latlng.lng.toFixed(3)}]. Now click Point B 📍`;
+          }
+          showToast(`📍 Point A set! Now click Point B anywhere on the map to calculate distance.`);
+        } else if (measurePoints.length === 2) {
+          const ptA = measurePoints[0].latlng;
+          const ptB = measurePoints[1].latlng;
+
+          // Calculate distance in meters then convert to kilometers
+          const distMeters = ptA.distanceTo(ptB);
+          const distKm = (distMeters / 1000).toFixed(2);
+
+          // Approximate travel times (driving ~40km/h, walking ~4.5km/h)
+          const carMins = Math.max(1, Math.round((distKm / 40) * 60));
+          const walkMins = Math.max(1, Math.round((distKm / 4.5) * 60));
+
+          // Draw dashed measurement polyline
+          measurePolyline = L.polyline([ptA, ptB], {
+            color: '#F59E0B',
+            weight: 4,
+            opacity: 0.95,
+            dashArray: '8, 8',
+            lineCap: 'round'
+          }).addTo(mapObj);
+
+          // Calculate midpoint for distance popup display
+          const midLat = (ptA.lat + ptB.lat) / 2;
+          const midLng = (ptA.lng + ptB.lng) / 2;
+
+          const tooltipContent = `
+            <div style="font-family: 'Plus Jakarta Sans', sans-serif; text-align: center; padding: 4px 6px;">
+              <div style="font-size: 16px; font-weight: 900; color: #D97706; font-family: 'Space Mono', monospace;">
+                📏 ${distKm} km
+              </div>
+              <div style="font-size: 11px; color: #334155; margin-top: 3px; font-weight: 800;">
+                🚗 ~${carMins} mins drive · 🚶 ~${walkMins} mins walk
+              </div>
+              <div style="font-size: 9.5px; color: #64748B; margin-top: 2px;">
+                Direct distance between points
+              </div>
+            </div>
+          `;
+
+          measurePopup = L.popup({
+            closeButton: false,
+            autoClose: false,
+            closeOnClick: false
+          })
+            .setLatLng([midLat, midLng])
+            .setContent(tooltipContent)
+            .openOn(mapObj);
+
+          if (statusEl) {
+            statusEl.innerHTML = `<b style="color: #6EE7B7;">Distance: ${distKm} km</b> (🚗 ~${carMins} mins drive)`;
+          }
+
+          showToast(`📏 Distance measured: ${distKm} km (~${carMins} mins drive)`);
+        }
+      }
+
+      function resetMeasurePoints() {
+        if (measurePoints && measurePoints.length) {
+          measurePoints.forEach(p => {
+            if (p.marker && mapObj) mapObj.removeLayer(p.marker);
+          });
+        }
+        measurePoints = [];
+
+        if (measurePolyline && mapObj) {
+          mapObj.removeLayer(measurePolyline);
+          measurePolyline = null;
+        }
+
+        if (measurePopup && mapObj) {
+          mapObj.closePopup(measurePopup);
+          measurePopup = null;
+        }
+
+        const statusEl = document.getElementById('measureBannerStatus');
+        if (statusEl) {
+          statusEl.innerHTML = `Click anywhere on the map to set Point A 📍`;
+        }
+      }
+
+      // SET CHECKOUT QUICK DATE PRESET
+      function setCheckoutDatePreset(preset) {
+        const checkinInput = document.getElementById('coCheckin');
+        const checkoutInput = document.getElementById('coCheckout');
+        if (!checkinInput || !checkoutInput) return;
+
+        const now = new Date();
+        let start = new Date();
+        let end = new Date();
+
+        if (preset === 'weekend') {
+          // Find next Friday
+          const day = now.getDay(); // 0: Sun, 5: Fri
+          const daysUntilFriday = (5 - day + 7) % 7 || 7;
+          start.setDate(now.getDate() + daysUntilFriday);
+          end = new Date(start);
+          end.setDate(start.getDate() + 2); // Sunday
+        } else if (preset === '3days') {
+          start.setDate(now.getDate() + 1);
+          end = new Date(start);
+          end.setDate(start.getDate() + 2);
+        } else if (preset === '5days') {
+          start.setDate(now.getDate() + 1);
+          end = new Date(start);
+          end.setDate(start.getDate() + 4);
+        }
+
+        const formatYMD = (d) => {
+          const year = d.getFullYear();
+          const month = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        };
+
+        checkinInput.value = formatYMD(start);
+        checkoutInput.value = formatYMD(end);
+
+        updateSummary();
+        showToast(`📅 Travel dates set: ${formatDateHuman(checkinInput.value)} to ${formatDateHuman(checkoutInput.value)}`);
+      }
+
+      // EXPORT ITINERARY TO GOOGLE CALENDAR AND GENERATE ICS FILE
+      function addToGoogleCalendar() {
+        if (!cart || cart.length === 0) {
+          showToast("⚠️ Your TourCartBD itinerary is empty! Add items before saving to calendar.");
+          return;
+        }
+
+        // Gather dates from checkout inputs if set
+        const checkinInput = document.getElementById('coCheckin');
+        const checkoutInput = document.getElementById('coCheckout');
+        const checkinVal = checkinInput ? checkinInput.value : '';
+        const checkoutVal = checkoutInput ? checkoutInput.value : '';
+
+        let startDate, endDate;
+        const now = new Date();
+
+        if (checkinVal) {
+          startDate = new Date(checkinVal + 'T09:00:00');
+        } else {
+          // Default to tomorrow at 9:00 AM
+          startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 9, 0, 0);
+        }
+
+        if (checkoutVal) {
+          endDate = new Date(checkoutVal + 'T18:00:00');
+        } else {
+          // Default 3 days later at 6:00 PM
+          endDate = new Date(startDate.getTime() + (3 * 24 * 60 * 60 * 1000));
+          endDate.setHours(18, 0, 0);
+        }
+
+        const formatISOForCal = (d) => {
+          const year = d.getUTCFullYear();
+          const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+          const day = String(d.getUTCDate()).padStart(2, '0');
+          const hours = String(d.getUTCHours()).padStart(2, '0');
+          const minutes = String(d.getUTCMinutes()).padStart(2, '0');
+          const seconds = String(d.getUTCSeconds()).padStart(2, '0');
+          return `${year}${month}${day}T${hours}${minutes}${seconds}Z`;
+        };
+
+        const startIso = formatISOForCal(startDate);
+        const endIso = formatISOForCal(endDate);
+
+        const nameInput = document.getElementById('coName');
+        const refEl = document.getElementById('coRefNumber');
+        const guestName = (nameInput && nameInput.value.trim()) ? nameInput.value.trim() : 'Valued Guest';
+
+        const randomNum = Math.floor(10000 + Math.random() * 90000);
+        const refNum = (refEl && refEl.textContent && !refEl.textContent.includes('XXXXX')) 
+          ? refEl.textContent 
+          : `TC-2026-${randomNum}`;
+
+        const totalAmount = cart.reduce((sum, item) => sum + item.price, 0);
+
+        let detailsText = `🏖️ TourCartBD Customized Travel Itinerary\n`;
+        detailsText += `Reference: ${refNum}\n`;
+        detailsText += `Guest: ${guestName}\n`;
+        detailsText += `Total Estimate: ৳${totalAmount.toLocaleString()} BDT\n\n`;
+        detailsText += `SELECTED EXPERIENCES (${cart.length} items):\n`;
+
+        cart.forEach((item, idx) => {
+          const pStr = item.price === 0 ? 'Free' : `৳${item.price.toLocaleString()} BDT`;
+          detailsText += `${idx + 1}. ${item.name} (${pStr})\n`;
+        });
+
+        detailsText += `\n📍 Locations: Cox's Bazar, Bandarban, Rangamati & Khagrachhari\n`;
+        detailsText += `💬 Support WhatsApp: +880 1740-902857\n`;
+        detailsText += `🌐 Web App: https://app.tourcartbd.com`;
+
+        const eventTitle = `🏝️ TourCartBD Tour: Cox's Bazar & Hill Tracts (${cart.length} Experiences)`;
+        const locationStr = `Cox's Bazar, Bandarban, Rangamati & Chattogram, Bangladesh`;
+
+        // 1. Google Calendar Web Link
+        const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE` +
+          `&text=${encodeURIComponent(eventTitle)}` +
+          `&dates=${startIso}/${endIso}` +
+          `&details=${encodeURIComponent(detailsText)}` +
+          `&location=${encodeURIComponent(locationStr)}`;
+
+        window.open(gcalUrl, '_blank');
+
+        // 2. Generate & Trigger Download for .ICS iCal File
+        const icsContent = [
+          'BEGIN:VCALENDAR',
+          'VERSION:2.0',
+          'PRODID:-//TourCartBD//Custom Tour Builder//EN',
+          'CALSCALE:GREGORIAN',
+          'METHOD:PUBLISH',
+          'BEGIN:VEVENT',
+          `UID:tourcartbd-${Date.now()}@tourcartbd.com`,
+          `DTSTAMP:${formatISOForCal(now)}`,
+          `DTSTART:${startIso}`,
+          `DTEND:${endIso}`,
+          `SUMMARY:${eventTitle.replace(/,/g, '\\,')}`,
+          `DESCRIPTION:${detailsText.replace(/\n/g, '\\n').replace(/,/g, '\\,')}`,
+          `LOCATION:${locationStr.replace(/,/g, '\\,')}`,
+          'STATUS:CONFIRMED',
+          'END:VEVENT',
+          'END:VCALENDAR'
+        ].join('\r\n');
+
+        const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.setAttribute('download', `TourCartBD_Itinerary_${refNum}.ics`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        showToast("📅 Google Calendar opened & .ICS file downloaded successfully!");
+      }
+
+      // EXPORT CUSTOMIZED ITINERARY AS PROFESSIONALLY FORMATTED PDF DOCUMENT
+      function exportItineraryPdf() {
+        if (!cart || cart.length === 0) {
+          showToast("⚠️ Your TourCartBD itinerary is empty! Add items before exporting.");
+          return;
+        }
+
+        showToast("📄 Generating high-resolution PDF itinerary document...");
+
+        // Gather customer details
+        const nameInput = document.getElementById('coName');
+        const phoneInput = document.getElementById('coPhone');
+        const emailInput = document.getElementById('coEmail');
+        const typeInput = document.getElementById('coType');
+        const travellersInput = document.getElementById('coTravellers');
+        const checkinInput = document.getElementById('coCheckin');
+        const checkoutInput = document.getElementById('coCheckout');
+        const requestsInput = document.getElementById('coRequests');
+        const refEl = document.getElementById('coRefNumber');
+
+        const name = (nameInput && nameInput.value.trim()) ? nameInput.value.trim() : 'Valued Guest';
+        const phone = (phoneInput && phoneInput.value.trim()) ? phoneInput.value.trim() : 'Not specified';
+        const email = (emailInput && emailInput.value.trim()) ? emailInput.value.trim() : 'Not specified';
+        const type = (typeInput && typeInput.value) ? typeInput.value : 'Custom Tour';
+        const travellers = (travellersInput && parseInt(travellersInput.value)) ? parseInt(travellersInput.value) : 2;
+        const checkin = checkinInput ? checkinInput.value : '';
+        const checkout = checkoutInput ? checkoutInput.value : '';
+        const requests = (requestsInput && requestsInput.value.trim()) ? requestsInput.value.trim() : 'None';
+
+        const randomNum = Math.floor(10000 + Math.random() * 90000);
+        const refNum = (refEl && refEl.textContent && !refEl.textContent.includes('XXXXX')) 
+          ? refEl.textContent 
+          : `TC-2026-${randomNum}`;
+
+        let datesStr = 'Dates TBD upon booking confirmation';
+        if (checkin && checkout) {
+          datesStr = `${formatDateHuman(checkin)} to ${formatDateHuman(checkout)}`;
+        }
+
+        // Categorize items
+        const activities = cart.filter(item => typeof item.id === 'number' || (!String(item.id).startsWith('hotel-') && !String(item.id).startsWith('bus-') && !String(item.id).startsWith('lt-')));
+        const hotels = cart.filter(item => String(item.id).startsWith('hotel-') || item.cat === 'hotel');
+        const transports = cart.filter(item => String(item.id).startsWith('bus-') || String(item.id).startsWith('lt-') || item.cat === 'bus' || item.cat === 'transport');
+
+        const totalAmount = cart.reduce((sum, item) => sum + item.price, 0);
+        const depositAmount = Math.round(totalAmount / 2);
+        const currentDate = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+        const templateContainer = document.getElementById('pdfPrintTemplate');
+        if (!templateContainer) return;
+
+        templateContainer.style.display = 'block';
+        templateContainer.innerHTML = `
+          <div style="
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: #111827;
+            padding: 32px;
+            max-width: 800px;
+            margin: 0 auto;
+            background: #FFFFFF;
+            font-size: 13px;
+            line-height: 1.5;
+            box-sizing: border-box;
+          ">
+            
+            <!-- BRAND HEADER -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2.5px solid #E85D3A; padding-bottom: 18px; margin-bottom: 20px;">
+              <div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <span style="font-size: 32px;">🏝️</span>
+                  <div>
+                    <h1 style="font-family: 'Playfair Display', Georgia, serif; font-size: 28px; font-weight: 900; color: #111827; margin: 0; line-height: 1.1;">TourCartBD</h1>
+                    <p style="font-size: 11px; font-weight: 800; color: #1A7C6E; text-transform: uppercase; letter-spacing: 0.8px; margin: 2px 0 0 0;">
+                      Southeast Bangladesh's Custom Tour Builder
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div style="text-align: right;">
+                <div style="font-family: 'Space Mono', monospace; font-size: 14px; font-weight: 800; color: #E85D3A; background: #FEF3F0; padding: 4px 12px; border-radius: 6px; display: inline-block; border: 1px solid #FCD34D;">
+                  REF: ${refNum}
+                </div>
+                <div style="font-size: 11px; color: #6B7280; margin-top: 6px;">Issued Date: <strong>${currentDate}</strong></div>
+              </div>
+            </div>
+
+            <!-- DOCUMENT TITLE -->
+            <div style="background: #F5EFE6; border-radius: 10px; padding: 14px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #1A7C6E;">
+              <div>
+                <h2 style="font-family: 'Playfair Display', Georgia, serif; font-size: 19px; font-weight: 800; color: #111827; margin: 0;">
+                  Customized Tour Itinerary & Cost Summary
+                </h2>
+                <p style="font-size: 11px; color: #4B5563; margin: 2px 0 0 0;">App.tourcartbd.com · Official Price & Selection Voucher</p>
+              </div>
+              <span style="font-size: 11px; font-weight: 800; color: #1A7C6E; background: #E8F4F2; padding: 5px 12px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px;">
+                CUSTOM PACKAGE
+              </span>
+            </div>
+
+            <!-- GUEST INFO GRID -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; background: #FAFAFA; border: 1px solid #E5E7EB; border-radius: 10px; padding: 16px; margin-bottom: 22px; font-size: 12px;">
+              <div>
+                <span style="color: #6B7280; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 2px;">LEAD TRAVELLER</span>
+                <strong style="font-size: 14px; color: #111827;">${name}</strong>
+              </div>
+              <div>
+                <span style="color: #6B7280; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 2px;">WHATSAPP CONTACT</span>
+                <strong style="color: #111827; font-size: 13px;">${phone}</strong>
+              </div>
+              <div>
+                <span style="color: #6B7280; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 2px;">PROPOSED TRAVEL DATES</span>
+                <strong style="color: #111827;">${datesStr}</strong>
+              </div>
+              <div>
+                <span style="color: #6B7280; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 2px;">GUESTS & TYPE</span>
+                <strong style="color: #111827;">${travellers} Guests (${type})</strong>
+              </div>
+              ${requests && requests !== 'None' ? `
+              <div style="grid-column: span 2; border-top: 1px dashed #E5E7EB; padding-top: 8px; margin-top: 4px;">
+                <span style="color: #6B7280; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 2px;">SPECIAL PREFERENCES / NOTES</span>
+                <span style="color: #374151; font-style: italic;">"${requests}"</span>
+              </div>
+              ` : ''}
+            </div>
+
+            <!-- SECTION 1: ACTIVITIES -->
+            ${activities.length > 0 ? `
+            <div style="margin-bottom: 22px;">
+              <h3 style="font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: #1A7C6E; margin: 0 0 10px 0; display: flex; align-items: center; gap: 6px;">
+                <span>📍</span> Selected Sightseeing & Guided Experiences (${activities.length})
+              </h3>
+              <table style="width: 100%; border-collapse: collapse; font-size: 12px; border: 1px solid #E5E7EB; border-radius: 8px; overflow: hidden;">
+                <thead>
+                  <tr style="background: #0E1117; color: #FFFFFF; text-align: left; font-weight: 800; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">
+                    <th style="padding: 10px 12px; width: 35px;">#</th>
+                    <th style="padding: 10px 12px;">Activity Name</th>
+                    <th style="padding: 10px 12px;">Location</th>
+                    <th style="padding: 10px 12px;">Duration</th>
+                    <th style="padding: 10px 12px; text-align: right;">Price (BDT)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${activities.map((a, idx) => `
+                    <tr style="border-bottom: 1px solid #F3F4F6; background: ${idx % 2 === 0 ? '#FFFFFF' : '#FAFAFA'};">
+                      <td style="padding: 9px 12px; color: #6B7280; font-weight: bold;">${idx + 1}</td>
+                      <td style="padding: 9px 12px; font-weight: 700; color: #111827;">${a.name}</td>
+                      <td style="padding: 9px 12px; color: #4B5563;">${a.loc ? a.loc.split(',')[0] : 'Southeast BD'}</td>
+                      <td style="padding: 9px 12px; color: #6B7280;">${a.duration || 'Flexible'}</td>
+                      <td style="padding: 9px 12px; text-align: right; font-family: 'Space Mono', monospace; font-weight: 700; color: #111827;">${a.price === 0 ? 'Free' : '৳' + a.price.toLocaleString()}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+            ` : ''}
+
+            <!-- SECTION 2: HOTELS -->
+            ${hotels.length > 0 ? `
+            <div style="margin-bottom: 22px;">
+              <h3 style="font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: #1E3A8A; margin: 0 0 10px 0; display: flex; align-items: center; gap: 6px;">
+                <span>🏨</span> Chosen Accommodations & Stays (${hotels.length})
+              </h3>
+              <table style="width: 100%; border-collapse: collapse; font-size: 12px; border: 1px solid #E5E7EB; border-radius: 8px; overflow: hidden;">
+                <thead>
+                  <tr style="background: #1E3A8A; color: #FFFFFF; text-align: left; font-weight: 800; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">
+                    <th style="padding: 10px 12px; width: 35px;">#</th>
+                    <th style="padding: 10px 12px;">Hotel / Resort</th>
+                    <th style="padding: 10px 12px;">Duration</th>
+                    <th style="padding: 10px 12px; text-align: right;">Total Cost (BDT)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${hotels.map((h, idx) => `
+                    <tr style="border-bottom: 1px solid #F3F4F6; background: ${idx % 2 === 0 ? '#FFFFFF' : '#FAFAFA'};">
+                      <td style="padding: 9px 12px; color: #6B7280; font-weight: bold;">${idx + 1}</td>
+                      <td style="padding: 9px 12px; font-weight: 700; color: #111827;">🏨 ${h.name}</td>
+                      <td style="padding: 9px 12px; color: #4B5563;">3 Days / 2 Nights</td>
+                      <td style="padding: 9px 12px; text-align: right; font-family: 'Space Mono', monospace; font-weight: 700; color: #111827;">৳${h.price.toLocaleString()}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+            ` : ''}
+
+            <!-- SECTION 3: TRANSPORTATION -->
+            ${transports.length > 0 ? `
+            <div style="margin-bottom: 22px;">
+              <h3 style="font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: #6D28D9; margin: 0 0 10px 0; display: flex; align-items: center; gap: 6px;">
+                <span>🚌</span> Route Coaches & Ground Transport (${transports.length})
+              </h3>
+              <table style="width: 100%; border-collapse: collapse; font-size: 12px; border: 1px solid #E5E7EB; border-radius: 8px; overflow: hidden;">
+                <thead>
+                  <tr style="background: #6D28D9; color: #FFFFFF; text-align: left; font-weight: 800; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">
+                    <th style="padding: 10px 12px; width: 35px;">#</th>
+                    <th style="padding: 10px 12px;">Service / Route</th>
+                    <th style="padding: 10px 12px; text-align: right;">Cost (BDT)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${transports.map((t, idx) => `
+                    <tr style="border-bottom: 1px solid #F3F4F6; background: ${idx % 2 === 0 ? '#FFFFFF' : '#FAFAFA'};">
+                      <td style="padding: 9px 12px; color: #6B7280; font-weight: bold;">${idx + 1}</td>
+                      <td style="padding: 9px 12px; font-weight: 700; color: #111827;">${t.name}</td>
+                      <td style="padding: 9px 12px; text-align: right; font-family: 'Space Mono', monospace; font-weight: 700; color: #111827;">৳${t.price.toLocaleString()}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+            ` : ''}
+
+            <!-- FINANCIAL BREAKDOWN BOX -->
+            <div style="background: #0E1117; color: #FFFFFF; border-radius: 12px; padding: 20px; margin-bottom: 22px;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 12px; color: rgba(255,255,255,0.7);">
+                <span>Total Items Included:</span>
+                <span style="font-weight: 700; color: #FFFFFF;">${cart.length} item(s)</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 12px; color: rgba(255,255,255,0.7);">
+                <span>Per Person Cost (${travellers} Guests):</span>
+                <span style="font-family: 'Space Mono', monospace; font-weight: 700; color: #D4A843;">৳${Math.round(totalAmount / travellers).toLocaleString()} BDT</span>
+              </div>
+              <div style="height: 1px; background: rgba(255,255,255,0.12); margin: 10px 0;"></div>
+              
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <span style="font-size: 15px; font-weight: 900; color: #FFFFFF; text-transform: uppercase; letter-spacing: 0.5px;">TOTAL PACKAGE ESTIMATE:</span>
+                <span style="font-family: 'Space Mono', monospace; font-size: 22px; font-weight: 900; color: #4ADE80;">৳${totalAmount.toLocaleString()} BDT</span>
+              </div>
+
+              <div style="
+                background: linear-gradient(135deg, rgba(232, 93, 58, 0.2), rgba(26, 124, 110, 0.2));
+                border: 1px solid rgba(232, 93, 58, 0.4);
+                border-radius: 8px;
+                padding: 10px 14px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              ">
+                <div>
+                  <span style="font-size: 11px; font-weight: 800; color: #FCD34D; text-transform: uppercase; display: block;">50% Safe Booking Deposit Required</span>
+                  <span style="font-size: 10px; color: rgba(255,255,255,0.7);">Remaining 50% payable on arrival</span>
+                </div>
+                <span style="font-family: 'Space Mono', monospace; font-size: 18px; font-weight: 900; color: #FFFFFF;">৳${depositAmount.toLocaleString()} BDT</span>
+              </div>
+            </div>
+
+            <!-- GUARANTEES & CONTACT FOOTER -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; border-top: 1.5px solid #E5E7EB; padding-top: 16px; font-size: 11px; color: #4B5563;">
+              <div>
+                <strong style="color: #111827; display: block; margin-bottom: 3px;">🛡️ CANCELLATION & FLEXIBILITY</strong>
+                <span>Free 100% deposit refund if cancelled at least 72 hours prior to journey. Instant booking adjustments handled via WhatsApp.</span>
+              </div>
+              <div>
+                <strong style="color: #111827; display: block; margin-bottom: 3px;">💬 TOURCARTBD SUPPORT CONCIERGE</strong>
+                <span>WhatsApp: +880 1740-902857<br>Email: info@tourcartbd.com · Web: app.tourcartbd.com</span>
+              </div>
+            </div>
+
+            <div style="text-align: center; font-size: 10px; color: #9CA3AF; margin-top: 18px; border-top: 1px dashed #E5E7EB; padding-top: 8px;">
+              Thank you for planning with TourCartBD · Cox's Bazar · Bandarban · Rangamati · Khagrachhari · Chattogram
+            </div>
+
+          </div>
+        `;
+
+        if (typeof html2pdf !== 'undefined') {
+          const opt = {
+            margin:       [0.2, 0.2, 0.2, 0.2],
+            filename:     `TourCartBD_Itinerary_${refNum}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true, logging: false },
+            jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+          };
+
+          html2pdf().set(opt).from(templateContainer).save().then(() => {
+            showToast("✔️ PDF itinerary document exported successfully!");
+          }).catch(err => {
+            console.error("html2pdf failed", err);
+            window.print();
+          });
+        } else {
+          window.print();
+        }
+      }
+
       // PRICE SLIDER INPUT LISTENER Initialize
       document.addEventListener('DOMContentLoaded', () => {
         // Hook price range slider
@@ -8822,5 +9494,8 @@
         initLeafletMap();
       });
     </script>
+
+    <!-- Printable container element for vector PDF itinerary export -->
+    <div id="pdfPrintTemplate" style="display: none;"></div>
   </body>
 </html>
