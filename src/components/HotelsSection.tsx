@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTourCart } from '../context/TourCartContext';
 import { HOTELS, Hotel } from '../data';
-import { Star, ShieldAlert, Wifi, Coffee, HelpCircle, Utensils, Zap, HelpCircle as HelpIcon } from 'lucide-react';
+import { Star, MapPin, ExternalLink, Maximize2, X, Image as ImageIcon } from 'lucide-react';
 
 export const HotelsSection: React.FC = () => {
   const {
@@ -12,6 +12,8 @@ export const HotelsSection: React.FC = () => {
     setCheckoutModalOpen,
     hotels, refreshHotels
   } = useTourCart();
+
+  const [selectedPhotoHotel, setSelectedPhotoHotel] = useState<Hotel | null>(null);
 
   React.useEffect(() => {
     refreshHotels();
@@ -174,26 +176,63 @@ export const HotelsSection: React.FC = () => {
                 key={hotel.id}
                 className={`bg-white rounded-2xl border overflow-hidden flex flex-col justify-between transition-all duration-300 relative ${chosen ? 'border-[#1A7C6E] shadow-xl shadow-[#1A7C6E]/5 bg-[#E8F4F2]/10' : 'border-[#d1cdc7] hover:border-[#1A7C6E] hover:shadow-lg'}`}
               >
-                {/* Header background with visual representation */}
-                <div className="h-36 relative select-none flex items-center justify-center text-4xl" style={{ background: hotel.bg }}>
-                  <span className="relative z-10">{hotel.icon}</span>
-                  <div className="absolute inset-0 bg-black/15"></div>
-                  
-                  <span className={`absolute top-3 left-3 text-[9px] uppercase font-black px-2 py-0.5 rounded border ${tierColors[hotel.tier]}`}>
+                {/* Header with Real Hotel Photo & Google Maps Assistance */}
+                <div className="h-48 relative select-none overflow-hidden group">
+                  <img 
+                    src={hotel.image} 
+                    alt={hotel.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      // Fallback if image fails
+                      (e.target as HTMLElement).style.display = 'none';
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/30 pointer-events-none"></div>
+
+                  {/* Tier Badge */}
+                  <span className={`absolute top-3 left-3 text-[9px] uppercase font-black px-2.5 py-1 rounded-md shadow backdrop-blur-md border ${tierColors[hotel.tier]}`}>
                     {hotel.tier}
                   </span>
 
+                  {/* Stars Badge */}
+                  <span className="absolute top-3 right-3 bg-black/70 backdrop-blur-md text-[#D4A843] text-[10px] font-black px-2 py-1 rounded-md flex items-center border border-white/10 shadow">
+                    {Array.from({ length: hotel.stars }).map((_, i) => (
+                      <Star key={i} className="w-3 h-3 fill-current" />
+                    ))}
+                  </span>
+
+                  {/* Discount Badge */}
                   {hotel.discountLabel && (
-                    <span className="absolute bottom-3 left-3 bg-[#E85D3A] text-white text-[10px] font-black tracking-wider px-2 py-0.5 rounded uppercase z-10 shadow flex items-center">
+                    <span className="absolute top-12 left-3 bg-[#E85D3A] text-white text-[10px] font-black tracking-wider px-2 py-0.5 rounded uppercase z-10 shadow flex items-center">
                       🔥 {hotel.discountLabel}
                     </span>
                   )}
 
-                  <span className="absolute top-3 right-3 bg-black/60 text-[#D4A843] text-[10px] font-black px-2 py-0.5 rounded flex items-center">
-                    {Array.from({ length: hotel.stars }).map((_, i) => (
-                      <Star key={i} className="w-2.5 h-2.5 fill-current" />
-                    ))}
-                  </span>
+                  {/* Quick Photo Expand & Google Maps Action Bar */}
+                  <div className="absolute bottom-3 left-3 right-3 flex justify-between items-center z-10">
+                    <button 
+                      onClick={() => setSelectedPhotoHotel(hotel)}
+                      className="bg-black/60 hover:bg-black/80 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg backdrop-blur-md border border-white/20 flex items-center gap-1 transition-colors cursor-pointer"
+                      title="View Full High-Res Photo"
+                    >
+                      <Maximize2 className="w-3 h-3 text-[#1A7C6E]" />
+                      <span>Real Photo</span>
+                    </button>
+
+                    <a
+                      href={hotel.mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(hotel.name + ' ' + hotel.loc)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-[#1A7C6E] hover:bg-[#156358] text-white text-[10px] font-black px-2.5 py-1 rounded-lg shadow-md flex items-center gap-1 transition-colors"
+                      title="Open on Google Maps"
+                    >
+                      <MapPin className="w-3 h-3" />
+                      <span>Google Maps</span>
+                      <ExternalLink className="w-2.5 h-2.5 opacity-80" />
+                    </a>
+                  </div>
                 </div>
 
                 {/* Info and details body */}
@@ -263,6 +302,65 @@ export const HotelsSection: React.FC = () => {
               </div>
             );
           })}
+        </div>
+      )}
+      {/* Photo View Modal */}
+      {selectedPhotoHotel && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="bg-white rounded-3xl w-full max-w-3xl overflow-hidden shadow-2xl relative border border-white/20">
+            <button
+              onClick={() => setSelectedPhotoHotel(null)}
+              className="absolute top-4 right-4 z-20 bg-black/60 hover:bg-black text-white p-2.5 rounded-full cursor-pointer transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="relative h-80 md:h-[420px] bg-black">
+              <img
+                src={selectedPhotoHotel.image}
+                alt={selectedPhotoHotel.name}
+                className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20 pointer-events-none"></div>
+
+              <div className="absolute bottom-4 left-6 right-6 flex flex-wrap justify-between items-end gap-3 z-10 text-white">
+                <div>
+                  <span className="text-xs text-teal-300 font-bold uppercase tracking-widest block mb-1">
+                    📍 {selectedPhotoHotel.loc}
+                  </span>
+                  <h3 className="font-serif text-2xl md:text-3xl font-black">{selectedPhotoHotel.name}</h3>
+                  <p className="text-xs text-gray-300 mt-1 max-w-xl">{selectedPhotoHotel.specialty}</p>
+                </div>
+
+                <a
+                  href={selectedPhotoHotel.mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedPhotoHotel.name + ' ' + selectedPhotoHotel.loc)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-[#1A7C6E] hover:bg-[#156358] text-white text-xs font-black px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2 transition-all cursor-pointer"
+                >
+                  <MapPin className="w-4 h-4" />
+                  <span>Open Location in Google Maps</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </div>
+            </div>
+
+            <div className="p-6 bg-white flex justify-between items-center flex-wrap gap-4">
+              <p className="text-xs text-gray-500 leading-relaxed max-w-xl">
+                {selectedPhotoHotel.desc}
+              </p>
+              <button
+                onClick={() => {
+                  handleToggleHotel(selectedPhotoHotel);
+                  setSelectedPhotoHotel(null);
+                }}
+                className={`px-6 py-3 rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer border transition-colors ${hotelInCartId(selectedPhotoHotel.id) ? 'bg-[#E85D3A] text-white border-[#E85D3A]' : 'bg-[#1A7C6E] text-white border-[#1A7C6E] hover:bg-[#1A7C6E]/90'}`}
+              >
+                {hotelInCartId(selectedPhotoHotel.id) ? '✓ Room Selected' : '+ Reserve Room Now'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </section>

@@ -85,7 +85,7 @@ export const SpotlightsSection: React.FC = () => {
             Planning a Corporate Retreat or Annual Outing?
           </h3>
           <p className="text-gray-400 text-xs md:text-sm leading-relaxed mt-3.5 font-medium">
-            Let TourCartBD host your enterprise team! From Dhaka luxury sleepers, beach banquets, private speed boat cruises to team-building bonfires — we deliver end-to-end on-ground service. Special invoice corporate tax exemptions apply.
+            Let TourCart host your enterprise team! From Dhaka luxury sleepers, beach banquets, private speed boat cruises to team-building bonfires — we deliver end-to-end on-ground service. Special invoice corporate tax exemptions apply.
           </p>
         </div>
 

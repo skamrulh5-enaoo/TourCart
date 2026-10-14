@@ -65,16 +65,16 @@ export const Hero: React.FC = () => {
             <span className="text-[10px] uppercase font-bold tracking-wider text-gray-500">Destinations</span>
           </div>
           <div className="flex flex-col">
-            <span className="font-mono text-xl md:text-2xl font-bold text-[#111827]">48+</span>
-            <span className="text-[10px] uppercase font-bold tracking-wider text-gray-500">Activities</span>
-          </div>
-          <div className="flex flex-col">
-            <span className="font-mono text-xl md:text-2xl font-bold text-[#111827]">34</span>
-            <span className="text-[10px] uppercase font-bold tracking-wider text-gray-500">Hotels</span>
+            <span className="font-mono text-xl md:text-2xl font-bold text-[#111827]">100%</span>
+            <span className="text-[10px] uppercase font-bold tracking-wider text-gray-500">Customizable</span>
           </div>
           <div className="flex flex-col">
             <span className="font-mono text-xl md:text-2xl font-bold text-[#111827]">24/7</span>
             <span className="text-[10px] uppercase font-bold tracking-wider text-gray-500">Coordination</span>
+          </div>
+          <div className="flex flex-col">
+            <span className="font-mono text-xl md:text-2xl font-bold text-[#111827]">0%</span>
+            <span className="text-[10px] uppercase font-bold tracking-wider text-gray-500">Markup</span>
           </div>
         </div>
       </div>
@@ -87,7 +87,7 @@ export const Hero: React.FC = () => {
           </div>
 
           <div className="flex justify-between items-center mb-4">
-            <h3 className="font-serif text-lg font-bold text-[#111827]">TourCartBD System</h3>
+            <h3 className="font-serif text-lg font-bold text-[#111827]">TourCart System</h3>
             <span className="bg-[#E85D3A] text-white px-2.5 py-0.5 rounded-full font-mono text-[11px] font-black">
               {displayItems.length} items
             </span>

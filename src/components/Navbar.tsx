@@ -63,6 +63,21 @@ export const Navbar: React.FC = () => {
             Packages
           </button>
         </li>
+        <li>
+          <button onClick={() => scrollToSection('destination-guides')} className="text-sm font-semibold text-gray-600 hover:text-[#1A7C6E] cursor-pointer transition-colors">
+            Guides
+          </button>
+        </li>
+        <li>
+          <button onClick={() => scrollToSection('aeo-knowledge-hub')} className="text-sm font-semibold text-gray-600 hover:text-[#1A7C6E] cursor-pointer transition-colors">
+            FAQ
+          </button>
+        </li>
+        <li>
+          <button onClick={() => scrollToSection('app-registration')} className="text-sm font-bold text-[#1A7C6E] hover:text-[#E85D3A] cursor-pointer transition-colors flex items-center gap-1 bg-[#E8F4F2] px-2.5 py-1 rounded-full border border-[#1A7C6E]/30">
+            📱 Get App
+          </button>
+        </li>
       </ul>
 
       <div className="flex gap-2.5 items-center">

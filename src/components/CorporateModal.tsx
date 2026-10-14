@@ -78,7 +78,7 @@ export const CorporateModal: React.FC = () => {
   };
 
   const getWALink = () => {
-    const text = `Hi TourCartBD Corporate Desk! We would like to request a custom official tour quotation.
+    const text = `Hi TourCart Corporate Desk! We would like to request a custom official tour quotation.
 *Company*: ${corpForm.company}
 *Contact*: ${corpForm.contact}
 *Est Size*: ${corpForm.size} Pax

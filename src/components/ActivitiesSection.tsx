@@ -72,7 +72,7 @@ export const ActivitiesSection: React.FC = () => {
             Build Your Own Custom Day
           </h2>
           <p className="text-gray-500 text-sm mt-2 max-w-xl">
-            Choose from 48+ curated local spots and activities. Put them in your basket, skip what doesn't fit your budget. Fully customizable.
+            Choose from curated local spots and activities. Put them in your basket, skip what doesn't fit your budget. Fully customizable.
           </p>
         </div>
 
@@ -96,7 +96,6 @@ export const ActivitiesSection: React.FC = () => {
           >
             <span className="text-xl mb-1">{d.icon}</span>
             <span className="text-xs font-bold block">{d.name}</span>
-            <span className="text-[9px] opacity-75 font-mono tracking-wider mt-0.5">{d.count}</span>
           </button>
         ))}
       </div>
@@ -187,7 +186,7 @@ export const ActivitiesSection: React.FC = () => {
             <p className="text-xs text-[#1A7C6E]/80 leading-relaxed font-semibold">
               {activeDest === 'all' && 'Our Cox\'s Bazar + Bandarban combinations are highly popular during the winters.'}
               {activeDest === 'cox' && 'Best time is Nov–Mar. Visited spots like Ramu\'s Buddhist temples can be scheduled in a single evening!'}
-              {activeDest === 'bandarban' && 'Nilgiri permits must be pre-cleared by the military. TourCartBD manages all permits for you.'}
+              {activeDest === 'bandarban' && 'Nilgiri permits must be pre-cleared by the military. TourCart manages all permits for you.'}
               {activeDest === 'rangamati' && 'Rent a single boat to access Shuvolong waterfall + quiet island tribal restaurants in one tour.'}
               {activeDest === 'khagra' && 'Alutila caves require organic hand-held wood torches. We arrange them at the local entrance.'}
               {activeDest === 'ctg' && 'Patenga beach provides spectacular industrial photo sunsets next to the seaport.'}

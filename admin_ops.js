@@ -1,4 +1,28 @@
-/* admin_ops.js - TourCartBD Admin Panel Control & Operations Engine */
+/* admin_ops.js - TourCart Admin Panel Control & Operations Engine */
+
+// Security & Sanitization Utilities
+if (typeof window.escapeHtml !== 'function') {
+  window.escapeHtml = function(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  };
+}
+
+if (typeof window.sanitizeUrl !== 'function') {
+  window.sanitizeUrl = function(url) {
+    if (!url || typeof url !== 'string') return '';
+    const trimmed = url.trim();
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('data:image/') || trimmed.startsWith('/')) {
+      return escapeHtml(trimmed);
+    }
+    return '';
+  };
+}
 
 // State globals
 let activities = [];
@@ -100,15 +124,44 @@ function initDatabase() {
   }
 }
 
-// Load entire database from localStorage
+// Load entire database from localStorage with defensive exception handling
 function loadDatabase() {
   initDatabase();
   
-  activities = JSON.parse(localStorage.getItem('tcbd_activities') || '[]');
-  bookings = JSON.parse(localStorage.getItem('tcbd_bookings') || '[]');
-  hotels = JSON.parse(localStorage.getItem('tcbd_hotels') || '[]');
-  busClasses = JSON.parse(localStorage.getItem('tcbd_bus_classes') || '[]');
-  localTransport = JSON.parse(localStorage.getItem('tcbd_local_transport') || '[]');
+  try {
+    activities = JSON.parse(localStorage.getItem('tcbd_activities') || '[]');
+  } catch(e) {
+    console.error("Error parsing activities database:", e);
+    activities = [];
+  }
+
+  try {
+    bookings = JSON.parse(localStorage.getItem('tcbd_bookings') || '[]');
+  } catch(e) {
+    console.error("Error parsing bookings database:", e);
+    bookings = [];
+  }
+
+  try {
+    hotels = JSON.parse(localStorage.getItem('tcbd_hotels') || '[]');
+  } catch(e) {
+    console.error("Error parsing hotels database:", e);
+    hotels = [];
+  }
+
+  try {
+    busClasses = JSON.parse(localStorage.getItem('tcbd_bus_classes') || '[]');
+  } catch(e) {
+    console.error("Error parsing bus classes database:", e);
+    busClasses = [];
+  }
+
+  try {
+    localTransport = JSON.parse(localStorage.getItem('tcbd_local_transport') || '[]');
+  } catch(e) {
+    console.error("Error parsing local transport database:", e);
+    localTransport = [];
+  }
 }
 
 // Save databases back to localStorage and trigger visual re-sync
@@ -148,7 +201,7 @@ function downloadBookingsCSV() {
   const encodedUri = encodeURI(csvContent);
   const link = document.createElement("a");
   link.setAttribute("href", encodedUri);
-  link.setAttribute("download", `TourCartBD_Bookings_Backup_${new Date().toISOString().slice(0,10)}.csv`);
+  link.setAttribute("download", `TourCart_Bookings_Backup_${new Date().toISOString().slice(0,10)}.csv`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -2094,7 +2147,7 @@ function deleteHotel(id) {
   const h = hotels.find(item => String(item.id) === String(id));
   if (!h) return;
   
-  if (!confirm(`⚠️ CRITICAL COMMAND: Are you sure you want to permanently delete hotel "${h.name}" from TourCartBD database? This action is IRREVERSIBLE and will also remove it from anyone's checkout list.`)) {
+  if (!confirm(`⚠️ CRITICAL COMMAND: Are you sure you want to permanently delete hotel "${h.name}" from TourCart database? This action is IRREVERSIBLE and will also remove it from anyone's checkout list.`)) {
     return;
   }
   
@@ -4044,7 +4097,7 @@ function exportAllDataJson() {
   const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup, null, 2));
   const link = document.createElement("a");
   link.setAttribute("href", dataStr);
-  link.setAttribute("download", `TourCartBD_FullBackup_${new Date().toISOString().slice(0,10)}.json`);
+  link.setAttribute("download", `TourCart_FullBackup_${new Date().toISOString().slice(0,10)}.json`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -4088,5 +4141,745 @@ function syncPriceChangeToGas(itemName, oldPrice, newPrice) {
     console.log(`✓ Synchronized price post for "${itemName}"`);
   }).catch(err => {
     console.warn("Pricing post sync warning:", err);
+  });
+}
+
+function saveBusClasses() {
+  localStorage.setItem('tcbd_bus_classes', JSON.stringify(busClasses));
+  loadDatabase();
+  window.dispatchEvent(new Event('storage'));
+}
+
+function saveLocalTransport() {
+  localStorage.setItem('tcbd_local_transport', JSON.stringify(localTransport));
+  loadDatabase();
+  window.dispatchEvent(new Event('storage'));
+}
+
+
+// =============================================================================
+// BUS CLASSES & OPERATORS MANAGEMENT CMS
+// =============================================================================
+let currentPageBuses = 1;
+const itemsPerPageBuses = 10;
+let filterBusStatus = "all";
+let editingBusId = null;
+let busPhotoUrlsList = [""];
+
+function renderBusesTable() {
+  seedBusAndTransportIfEmpty();
+  loadDatabase();
+
+  const tbody = document.getElementById('buses-table-tbody');
+  if (!tbody) return;
+
+  const searchInput = document.getElementById('buses-search-field');
+  const query = searchInput ? searchInput.value.toLowerCase().trim() : "";
+
+  let filtered = [...busClasses];
+
+  if (query !== "") {
+    filtered = filtered.filter(b => 
+      b.name.toLowerCase().includes(query) || 
+      (b.operators && b.operators.toLowerCase().includes(query)) ||
+      (b.desc && b.desc.toLowerCase().includes(query))
+    );
+  }
+
+  if (filterBusStatus === 'active') {
+    filtered = filtered.filter(b => b.active !== false);
+  } else if (filterBusStatus === 'inactive') {
+    filtered = filtered.filter(b => b.active === false);
+  }
+
+  const countEl = document.getElementById('buses-subtitle-count');
+  if (countEl) {
+    countEl.innerText = `Managing ${filtered.length} bus classes and operators`;
+  }
+
+  const totalItems = filtered.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPageBuses) || 1;
+  if (currentPageBuses > totalPages) currentPageBuses = totalPages;
+  if (currentPageBuses < 1) currentPageBuses = 1;
+
+  const startIdx = (currentPageBuses - 1) * itemsPerPageBuses;
+  const pageItems = filtered.slice(startIdx, startIdx + itemsPerPageBuses);
+
+  const pagInfo = document.getElementById('buses-pagination-info');
+  if (pagInfo) {
+    pagInfo.innerText = `Showing ${pageItems.length > 0 ? startIdx + 1 : 0}–${startIdx + pageItems.length} of ${totalItems} bus classes`;
+  }
+
+  const prevBtn = document.getElementById('buses-page-prev');
+  const nextBtn = document.getElementById('buses-page-next');
+  if (prevBtn) prevBtn.disabled = currentPageBuses <= 1;
+  if (nextBtn) nextBtn.disabled = currentPageBuses >= totalPages;
+
+  if (pageItems.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align:center; padding:40px; color:var(--text-muted);">
+          <div style="font-size:24px; margin-bottom:8px;">🚌</div>
+          No bus classes found matching criteria.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = pageItems.map(b => {
+    const isAct = b.active !== false;
+    const icon = escapeHtml(b.icon || '🚌');
+    const operators = escapeHtml(b.operators || b.name || 'Express Line');
+    const layout = escapeHtml(b.desc ? b.desc.slice(0, 45) + (b.desc.length > 45 ? '...' : '') : 'Standard Coach');
+    const photo = (b.photos && b.photos.length > 0) ? sanitizeUrl(b.photos[0]) : '';
+    
+    const fares = b.priceRange || {};
+    const faresSummary = escapeHtml(Object.entries(fares).map(([k, v]) => `৳${v}`).join(' · ') || '৳1,000+');
+    const busName = escapeHtml(b.name);
+    const busId = escapeHtml(b.id);
+
+    return `
+      <tr>
+        <td class="cell-bold">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:18px;">${icon}</span>
+            <div>
+              <div>${busName}</div>
+              <div style="font-size:11px; color:var(--text-muted); font-weight:normal;">ID: ${busId}</div>
+            </div>
+          </div>
+        </td>
+        <td>
+          <span class="badge" style="background:#e0f2fe; color:#0369a1; font-weight:700;">${operators}</span>
+        </td>
+        <td style="font-size:12.5px; color:var(--text-main);">${layout}</td>
+        <td><span style="font-weight:700; color:var(--teal); font-size:12.5px;">${faresSummary}</span></td>
+        <td>
+          ${photo ? `<img src="${photo}" referrerPolicy="no-referrer" style="width:36px; height:36px; object-fit:cover; border-radius:6px; border:1px solid #cbd5e1;" />` : '<span style="color:#94a3b8; font-size:11px;">No photo</span>'}
+        </td>
+        <td>
+          <span class="badge" onclick="toggleSingleBusStatus('${busId}', event)" style="cursor:pointer; ${isAct ? 'background:#dcfce7; color:#15803d;' : 'background:#fee2e2; color:#b91c1c;'}">
+            ${isAct ? '✓ ACTIVE' : '✕ INACTIVE'}
+          </span>
+        </td>
+        <td style="text-align:center;">
+          <div style="display:flex; gap:4px; justify-content:center;">
+            <button class="action-btn btn-ghost" title="Edit Specs" onclick="openBusDrawer('${busId}')">✏️</button>
+            <button class="action-btn btn-ghost" title="Duplicate" onclick="duplicateBus('${busId}')">📋</button>
+            <button class="action-btn btn-ghost" title="Delete" style="color:#ef4444;" onclick="deleteBus('${busId}')">🗑️</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function toggleSingleBusStatus(id, event) {
+  if (event) event.stopPropagation();
+  busClasses = busClasses.map(b => {
+    if (String(b.id) === String(id)) {
+      return { ...b, active: b.active === false ? true : false };
+    }
+    return b;
+  });
+  saveBusClasses();
+  renderBusesTable();
+  if (typeof renderPriceManager === 'function') renderPriceManager();
+  showToast("✓ Bus active status updated!");
+}
+
+function openBusDrawer(id) {
+  const overlay = document.getElementById('bus-drawer-overlay');
+  const panel = document.getElementById('bus-drawer-panel');
+  const title = document.getElementById('bus-drawer-spec-title');
+  if (!overlay || !panel) return;
+
+  editingBusId = id || null;
+
+  if (!id) {
+    if (title) title.innerText = "＋ Add New Bus Class Specification";
+    document.getElementById('bus-name').value = "";
+    document.getElementById('bus-icon').value = "🚌";
+    document.getElementById('bus-operators').value = "";
+    document.getElementById('bus-layout').value = "";
+    document.getElementById('bus-desc').value = "";
+    
+    document.getElementById('bus-price-dhaka-cox').value = 1200;
+    document.getElementById('bus-prevPrice-dhaka-cox').value = "";
+    document.getElementById('bus-label-dhaka-cox').value = "";
+    
+    document.getElementById('bus-price-dhaka-bandarban').value = 1000;
+    document.getElementById('bus-prevPrice-dhaka-bandarban').value = "";
+    document.getElementById('bus-label-dhaka-bandarban').value = "";
+    
+    document.getElementById('bus-price-dhaka-rangamati').value = 1100;
+    document.getElementById('bus-prevPrice-dhaka-rangamati').value = "";
+    document.getElementById('bus-label-dhaka-rangamati').value = "";
+    
+    document.getElementById('bus-price-ctg-cox').value = 500;
+    document.getElementById('bus-prevPrice-ctg-cox').value = "";
+    document.getElementById('bus-label-ctg-cox').value = "";
+    
+    document.getElementById('bus-price-dhaka-ctg').value = 700;
+    document.getElementById('bus-prevPrice-dhaka-ctg').value = "";
+    document.getElementById('bus-label-dhaka-ctg').value = "";
+    
+    document.getElementById('bus-sub-active').checked = true;
+    busPhotoUrlsList = [""];
+  } else {
+    const b = busClasses.find(item => String(item.id) === String(id));
+    if (!b) return;
+    if (title) title.innerText = `✏️ Edit Bus Class: ${b.name}`;
+    
+    document.getElementById('bus-name').value = b.name || "";
+    document.getElementById('bus-icon').value = b.icon || "🚌";
+    document.getElementById('bus-operators').value = b.operators || "";
+    document.getElementById('bus-layout').value = b.layout || "";
+    document.getElementById('bus-desc').value = b.desc || "";
+    
+    const pr = b.priceRange || {};
+    const ppr = b.prevPriceRange || {};
+    const dlr = b.discountLabelRange || {};
+    
+    document.getElementById('bus-price-dhaka-cox').value = pr['dhaka-cox'] || "";
+    document.getElementById('bus-prevPrice-dhaka-cox').value = ppr['dhaka-cox'] || "";
+    document.getElementById('bus-label-dhaka-cox').value = dlr['dhaka-cox'] || "";
+    
+    document.getElementById('bus-price-dhaka-bandarban').value = pr['dhaka-bandarban'] || "";
+    document.getElementById('bus-prevPrice-dhaka-bandarban').value = ppr['dhaka-bandarban'] || "";
+    document.getElementById('bus-label-dhaka-bandarban').value = dlr['dhaka-bandarban'] || "";
+    
+    document.getElementById('bus-price-dhaka-rangamati').value = pr['dhaka-rangamati'] || "";
+    document.getElementById('bus-prevPrice-dhaka-rangamati').value = ppr['dhaka-rangamati'] || "";
+    document.getElementById('bus-label-dhaka-rangamati').value = dlr['dhaka-rangamati'] || "";
+    
+    document.getElementById('bus-price-ctg-cox').value = pr['ctg-cox'] || "";
+    document.getElementById('bus-prevPrice-ctg-cox').value = ppr['ctg-cox'] || "";
+    document.getElementById('bus-label-ctg-cox').value = dlr['ctg-cox'] || "";
+    
+    document.getElementById('bus-price-dhaka-ctg').value = pr['dhaka-ctg'] || "";
+    document.getElementById('bus-prevPrice-dhaka-ctg').value = ppr['dhaka-ctg'] || "";
+    document.getElementById('bus-label-dhaka-ctg').value = dlr['dhaka-ctg'] || "";
+    
+    document.getElementById('bus-sub-active').checked = b.active !== false;
+    busPhotoUrlsList = (b.photos && b.photos.length > 0) ? [...b.photos] : [""];
+  }
+
+  renderBusPhotoUrlFields();
+  overlay.classList.add('active');
+  panel.classList.add('active');
+}
+
+function closeBusDrawer() {
+  const overlay = document.getElementById('bus-drawer-overlay');
+  const panel = document.getElementById('bus-drawer-panel');
+  if (overlay) overlay.classList.remove('active');
+  if (panel) panel.classList.remove('active');
+  editingBusId = null;
+}
+
+function renderBusPhotoUrlFields() {
+  const container = document.getElementById('bus-photos-repeatable-list');
+  if (!container) return;
+  let html = "";
+  busPhotoUrlsList.forEach((url, idx) => {
+    html += `
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+        <input type="text" class="form-input-text bus-photo-input" placeholder="https://images.unsplash.com/photo-..." value="${url}" style="margin:0; flex:1;" onchange="updateBusPhotoField(${idx}, this.value)" />
+        <button type="button" class="action-btn btn-ghost" style="color:#ef4444; border-color:#fee2e2; height:38px; width:38px; padding:0; display:flex; align-items:center; justify-content:center;" onclick="removeBusPhotoField(${idx})">🗑️</button>
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+  updateBusThumbnailsPreview();
+}
+
+function updateBusPhotoField(idx, value) {
+  busPhotoUrlsList[idx] = value.trim();
+  updateBusThumbnailsPreview();
+}
+
+function removeBusPhotoField(idx) {
+  busPhotoUrlsList.splice(idx, 1);
+  if (busPhotoUrlsList.length === 0) busPhotoUrlsList = [""];
+  renderBusPhotoUrlFields();
+}
+
+function addBusPhotoField() {
+  busPhotoUrlsList.push("");
+  renderBusPhotoUrlFields();
+}
+
+function updateBusThumbnailsPreview() {
+  const grid = document.getElementById('bus-photos-thumbnails-grid');
+  if (!grid) return;
+  const validPhotos = busPhotoUrlsList.filter(url => url.trim().length > 5);
+  if (validPhotos.length === 0) {
+    grid.style.display = 'none';
+    grid.innerHTML = "";
+    return;
+  }
+  grid.style.display = 'grid';
+  grid.style.gridTemplateColumns = 'repeat(5, 1fr)';
+  grid.innerHTML = validPhotos.map(url => `<img src="${url}" referrerPolicy="no-referrer" style="width:100%; height:50px; object-fit:cover; border-radius:4px; border:1px solid var(--border-color);" />`).join('');
+}
+
+function handleSaveBusForm() {
+  const name = document.getElementById('bus-name').value.trim();
+  const operators = document.getElementById('bus-operators').value.trim();
+  if (!name) {
+    showToast("⚠️ Bus class name is required!");
+    return;
+  }
+
+  const icon = document.getElementById('bus-icon').value.trim() || "🚌";
+  const layout = document.getElementById('bus-layout').value.trim();
+  const desc = document.getElementById('bus-desc').value.trim();
+  const active = document.getElementById('bus-sub-active').checked;
+
+  const priceRange = {
+    'dhaka-cox': parseInt(document.getElementById('bus-price-dhaka-cox').value) || 1200,
+    'dhaka-bandarban': parseInt(document.getElementById('bus-price-dhaka-bandarban').value) || 1000,
+    'dhaka-rangamati': parseInt(document.getElementById('bus-price-dhaka-rangamati').value) || 1100,
+    'ctg-cox': parseInt(document.getElementById('bus-price-ctg-cox').value) || 500,
+    'dhaka-ctg': parseInt(document.getElementById('bus-price-dhaka-ctg').value) || 700
+  };
+
+  const prevPriceRange = {
+    'dhaka-cox': parseInt(document.getElementById('bus-prevPrice-dhaka-cox').value) || null,
+    'dhaka-bandarban': parseInt(document.getElementById('bus-prevPrice-dhaka-bandarban').value) || null,
+    'dhaka-rangamati': parseInt(document.getElementById('bus-prevPrice-dhaka-rangamati').value) || null,
+    'ctg-cox': parseInt(document.getElementById('bus-prevPrice-ctg-cox').value) || null,
+    'dhaka-ctg': parseInt(document.getElementById('bus-prevPrice-dhaka-ctg').value) || null
+  };
+
+  const discountLabelRange = {
+    'dhaka-cox': document.getElementById('bus-label-dhaka-cox').value.trim() || null,
+    'dhaka-bandarban': document.getElementById('bus-label-dhaka-bandarban').value.trim() || null,
+    'dhaka-rangamati': document.getElementById('bus-label-dhaka-rangamati').value.trim() || null,
+    'ctg-cox': document.getElementById('bus-label-ctg-cox').value.trim() || null,
+    'dhaka-ctg': document.getElementById('bus-label-dhaka-ctg').value.trim() || null
+  };
+
+  const photoInputs = document.querySelectorAll('.bus-photo-input');
+  const photos = [];
+  photoInputs.forEach(inp => {
+    const val = inp.value.trim();
+    if (val.length > 5) photos.push(val);
+  });
+
+  const payload = {
+    name,
+    icon,
+    operators: operators || name,
+    layout: layout || desc,
+    desc,
+    priceRange,
+    prevPriceRange,
+    discountLabelRange,
+    photos,
+    active
+  };
+
+  if (editingBusId === null) {
+    payload.id = 'bus-' + Date.now();
+    busClasses.unshift(payload);
+    showToast(`✓ Registered new bus class: "${name}"`);
+  } else {
+    busClasses = busClasses.map(b => {
+      if (String(b.id) === String(editingBusId)) {
+        return { ...b, ...payload, id: editingBusId };
+      }
+      return b;
+    });
+    showToast(`✓ Updated bus class: "${name}"`);
+  }
+
+  saveBusClasses();
+  closeBusDrawer();
+  renderBusesTable();
+  if (typeof renderPriceManager === 'function') renderPriceManager();
+}
+
+function duplicateBus(id) {
+  const orig = busClasses.find(b => String(b.id) === String(id));
+  if (!orig) return;
+  const clone = {
+    ...orig,
+    name: `${orig.name} (Copy)`,
+    id: 'bus-' + Date.now(),
+    active: false
+  };
+  busClasses.unshift(clone);
+  saveBusClasses();
+  renderBusesTable();
+  showToast(`📋 Cloned "${orig.name}" successfully!`);
+}
+
+function deleteBus(id) {
+  const b = busClasses.find(item => String(item.id) === String(id));
+  if (!b) return;
+  if (!confirm(`⚠️ Are you sure you want to delete bus class "${b.name}"?`)) return;
+  busClasses = busClasses.filter(item => String(item.id) !== String(id));
+  saveBusClasses();
+  renderBusesTable();
+  if (typeof renderPriceManager === 'function') renderPriceManager();
+  showToast(`✓ Bus class "${b.name}" deleted.`);
+}
+
+
+// =============================================================================
+// LOCAL TRANSPORT GROUND VEHICLES MANAGEMENT CMS
+// =============================================================================
+let currentPageTransport = 1;
+const itemsPerPageTransport = 10;
+let filterTransportDest = "all";
+let filterTransportStatus = "all";
+let editingTransportId = null;
+let transportPhotoUrlsList = [""];
+
+function renderTransportTable() {
+  seedBusAndTransportIfEmpty();
+  loadDatabase();
+
+  const tbody = document.getElementById('transport-table-tbody');
+  if (!tbody) return;
+
+  const searchInput = document.getElementById('transport-search-field');
+  const query = searchInput ? searchInput.value.toLowerCase().trim() : "";
+
+  let filtered = [...localTransport];
+
+  if (query !== "") {
+    filtered = filtered.filter(t => 
+      t.name.toLowerCase().includes(query) || 
+      (t.unit && t.unit.toLowerCase().includes(query)) ||
+      (t.dest && t.dest.toLowerCase().includes(query))
+    );
+  }
+
+  if (filterTransportDest !== 'all') {
+    filtered = filtered.filter(t => (t.dest || '').toLowerCase() === filterTransportDest.toLowerCase());
+  }
+
+  if (filterTransportStatus === 'active') {
+    filtered = filtered.filter(t => t.active !== false);
+  } else if (filterTransportStatus === 'inactive') {
+    filtered = filtered.filter(t => t.active === false);
+  }
+
+  const countEl = document.getElementById('transport-subtitle-count');
+  if (countEl) {
+    countEl.innerText = `Managing ${filtered.length} local transport vehicles & services`;
+  }
+
+  const totalItems = filtered.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPageTransport) || 1;
+  if (currentPageTransport > totalPages) currentPageTransport = totalPages;
+  if (currentPageTransport < 1) currentPageTransport = 1;
+
+  const startIdx = (currentPageTransport - 1) * itemsPerPageTransport;
+  const pageItems = filtered.slice(startIdx, startIdx + itemsPerPageTransport);
+
+  const pagInfo = document.getElementById('transport-pagination-info');
+  if (pagInfo) {
+    pagInfo.innerText = `Showing ${pageItems.length > 0 ? startIdx + 1 : 0}–${startIdx + pageItems.length} of ${totalItems} transport services`;
+  }
+
+  const prevBtn = document.getElementById('transport-page-prev');
+  const nextBtn = document.getElementById('transport-page-next');
+  if (prevBtn) prevBtn.disabled = currentPageTransport <= 1;
+  if (nextBtn) nextBtn.disabled = currentPageTransport >= totalPages;
+
+  if (pageItems.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="8" style="text-align:center; padding:40px; color:var(--text-muted);">
+          <div style="font-size:24px; margin-bottom:8px;">🚗</div>
+          No local transport services found matching criteria.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = pageItems.map(t => {
+    const isAct = t.active !== false;
+    const icon = escapeHtml(t.icon || '🚗');
+    const dest = escapeHtml((t.dest || 'cox').toUpperCase());
+    const price = parseInt(t.price) || 0;
+    const prevPrice = t.prevPrice ? `৳${parseInt(t.prevPrice)}` : '—';
+    const unit = escapeHtml(t.unit || 'per vehicle/day');
+    const discount = t.discountLabel ? `<span class="badge" style="background:#fee2e2; color:#b91c1c;">${escapeHtml(t.discountLabel)}</span>` : '—';
+    const tName = escapeHtml(t.name);
+    const tId = escapeHtml(t.id);
+
+    return `
+      <tr>
+        <td class="cell-bold">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:18px;">${icon}</span>
+            <div>
+              <div>${tName}</div>
+              <div style="font-size:11px; color:var(--text-muted); font-weight:normal;">ID: ${tId}</div>
+            </div>
+          </div>
+        </td>
+        <td><span class="badge" style="background:#e8f4f2; color:#0f5548; font-weight:800;">${dest}</span></td>
+        <td style="font-size:12.5px; color:var(--text-main);">${unit}</td>
+        <td><span style="font-weight:700; color:var(--coral); font-size:13px;">৳${price}</span></td>
+        <td style="font-size:12px; color:var(--text-muted); text-decoration:line-through;">${prevPrice}</td>
+        <td>${discount}</td>
+        <td>
+          <span class="badge" onclick="toggleSingleTransportStatus('${tId}', event)" style="cursor:pointer; ${isAct ? 'background:#dcfce7; color:#15803d;' : 'background:#fee2e2; color:#b91c1c;'}">
+            ${isAct ? '✓ ACTIVE' : '✕ INACTIVE'}
+          </span>
+        </td>
+        <td style="text-align:center;">
+          <div style="display:flex; gap:4px; justify-content:center;">
+            <button class="action-btn btn-ghost" title="Edit Specs" onclick="openTransportDrawer('${tId}')">✏️</button>
+            <button class="action-btn btn-ghost" title="Duplicate" onclick="duplicateTransport('${tId}')">📋</button>
+            <button class="action-btn btn-ghost" title="Delete" style="color:#ef4444;" onclick="deleteTransport('${tId}')">🗑️</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function toggleSingleTransportStatus(id, event) {
+  if (event) event.stopPropagation();
+  localTransport = localTransport.map(t => {
+    if (String(t.id) === String(id)) {
+      return { ...t, active: t.active === false ? true : false };
+    }
+    return t;
+  });
+  saveLocalTransport();
+  renderTransportTable();
+  if (typeof renderPriceManager === 'function') renderPriceManager();
+  showToast("✓ Local transport active status updated!");
+}
+
+function openTransportDrawer(id) {
+  const overlay = document.getElementById('transport-drawer-overlay');
+  const panel = document.getElementById('transport-drawer-panel');
+  const title = document.getElementById('transport-drawer-spec-title');
+  if (!overlay || !panel) return;
+
+  editingTransportId = id || null;
+
+  if (!id) {
+    if (title) title.innerText = "＋ Add New Local Transport Service";
+    document.getElementById('transport-name').value = "";
+    document.getElementById('transport-dest').value = "cox";
+    document.getElementById('transport-icon').value = "🚗";
+    document.getElementById('transport-price').value = "";
+    document.getElementById('transport-prevPrice').value = "";
+    document.getElementById('transport-unit').value = "per vehicle/day";
+    document.getElementById('transport-discountLabel').value = "";
+    document.getElementById('transport-capacity').value = "";
+    document.getElementById('transport-operators').value = "";
+    document.getElementById('transport-desc').value = "";
+    document.getElementById('transport-sub-active').checked = true;
+    transportPhotoUrlsList = [""];
+  } else {
+    const t = localTransport.find(item => String(item.id) === String(id));
+    if (!t) return;
+    if (title) title.innerText = `✏️ Edit Transport Service: ${t.name}`;
+    
+    document.getElementById('transport-name').value = t.name || "";
+    document.getElementById('transport-dest').value = t.dest || "cox";
+    document.getElementById('transport-icon').value = t.icon || "🚗";
+    document.getElementById('transport-price').value = t.price || "";
+    document.getElementById('transport-prevPrice').value = t.prevPrice || "";
+    document.getElementById('transport-unit').value = t.unit || "per vehicle/day";
+    document.getElementById('transport-discountLabel').value = t.discountLabel || "";
+    document.getElementById('transport-capacity').value = t.capacity || "";
+    document.getElementById('transport-operators').value = t.operators || "";
+    document.getElementById('transport-desc').value = t.desc || "";
+    document.getElementById('transport-sub-active').checked = t.active !== false;
+    transportPhotoUrlsList = (t.photos && t.photos.length > 0) ? [...t.photos] : [""];
+  }
+
+  renderTransportPhotoUrlFields();
+  overlay.classList.add('active');
+  panel.classList.add('active');
+}
+
+function closeTransportDrawer() {
+  const overlay = document.getElementById('transport-drawer-overlay');
+  const panel = document.getElementById('transport-drawer-panel');
+  if (overlay) overlay.classList.remove('active');
+  if (panel) panel.classList.remove('active');
+  editingTransportId = null;
+}
+
+function renderTransportPhotoUrlFields() {
+  const container = document.getElementById('transport-photos-repeatable-list');
+  if (!container) return;
+  let html = "";
+  transportPhotoUrlsList.forEach((url, idx) => {
+    html += `
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+        <input type="text" class="form-input-text transport-photo-input" placeholder="https://images.unsplash.com/photo-..." value="${url}" style="margin:0; flex:1;" onchange="updateTransportPhotoField(${idx}, this.value)" />
+        <button type="button" class="action-btn btn-ghost" style="color:#ef4444; border-color:#fee2e2; height:38px; width:38px; padding:0; display:flex; align-items:center; justify-content:center;" onclick="removeTransportPhotoField(${idx})">🗑️</button>
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+  updateTransportThumbnailsPreview();
+}
+
+function updateTransportPhotoField(idx, value) {
+  transportPhotoUrlsList[idx] = value.trim();
+  updateTransportThumbnailsPreview();
+}
+
+function removeTransportPhotoField(idx) {
+  transportPhotoUrlsList.splice(idx, 1);
+  if (transportPhotoUrlsList.length === 0) transportPhotoUrlsList = [""];
+  renderTransportPhotoUrlFields();
+}
+
+function addTransportPhotoField() {
+  transportPhotoUrlsList.push("");
+  renderTransportPhotoUrlFields();
+}
+
+function updateTransportThumbnailsPreview() {
+  const grid = document.getElementById('transport-photos-thumbnails-grid');
+  if (!grid) return;
+  const validPhotos = transportPhotoUrlsList.filter(url => url.trim().length > 5);
+  if (validPhotos.length === 0) {
+    grid.style.display = 'none';
+    grid.innerHTML = "";
+    return;
+  }
+  grid.style.display = 'grid';
+  grid.style.gridTemplateColumns = 'repeat(5, 1fr)';
+  grid.innerHTML = validPhotos.map(url => `<img src="${url}" referrerPolicy="no-referrer" style="width:100%; height:50px; object-fit:cover; border-radius:4px; border:1px solid var(--border-color);" />`).join('');
+}
+
+function handleSaveTransportForm() {
+  const name = document.getElementById('transport-name').value.trim();
+  const dest = document.getElementById('transport-dest').value;
+  const price = parseInt(document.getElementById('transport-price').value);
+
+  if (!name || !dest || isNaN(price)) {
+    showToast("⚠️ Name, Destination region and Selling Price are required!");
+    return;
+  }
+
+  const icon = document.getElementById('transport-icon').value.trim() || "🚗";
+  const prevPriceVal = document.getElementById('transport-prevPrice').value.trim();
+  const prevPrice = prevPriceVal === "" ? null : parseInt(prevPriceVal);
+  const unit = document.getElementById('transport-unit').value.trim() || "per vehicle/day";
+  const discountLabel = document.getElementById('transport-discountLabel').value.trim() || null;
+  const capacity = document.getElementById('transport-capacity').value.trim();
+  const operators = document.getElementById('transport-operators').value.trim();
+  const desc = document.getElementById('transport-desc').value.trim();
+  const active = document.getElementById('transport-sub-active').checked;
+
+  const photoInputs = document.querySelectorAll('.transport-photo-input');
+  const photos = [];
+  photoInputs.forEach(inp => {
+    const val = inp.value.trim();
+    if (val.length > 5) photos.push(val);
+  });
+
+  const payload = {
+    name,
+    dest,
+    icon,
+    price,
+    prevPrice,
+    unit,
+    discountLabel,
+    capacity,
+    operators,
+    desc,
+    photos,
+    active
+  };
+
+  if (editingTransportId === null) {
+    payload.id = 'lt-' + Date.now();
+    localTransport.unshift(payload);
+    showToast(`✓ Registered new local transport: "${name}"`);
+  } else {
+    localTransport = localTransport.map(t => {
+      if (String(t.id) === String(editingTransportId)) {
+        return { ...t, ...payload, id: editingTransportId };
+      }
+      return t;
+    });
+    showToast(`✓ Updated local transport: "${name}"`);
+  }
+
+  saveLocalTransport();
+  closeTransportDrawer();
+  renderTransportTable();
+  if (typeof renderPriceManager === 'function') renderPriceManager();
+}
+
+function duplicateTransport(id) {
+  const orig = localTransport.find(t => String(t.id) === String(id));
+  if (!orig) return;
+  const clone = {
+    ...orig,
+    name: `${orig.name} (Copy)`,
+    id: 'lt-' + Date.now(),
+    active: false
+  };
+  localTransport.unshift(clone);
+  saveLocalTransport();
+  renderTransportTable();
+  showToast(`📋 Cloned "${orig.name}" successfully!`);
+}
+
+function deleteTransport(id) {
+  const t = localTransport.find(item => String(item.id) === String(id));
+  if (!t) return;
+  if (!confirm(`⚠️ Are you sure you want to delete transport service "${t.name}"?`)) return;
+  localTransport = localTransport.filter(item => String(item.id) !== String(id));
+  saveLocalTransport();
+  renderTransportTable();
+  if (typeof renderPriceManager === 'function') renderPriceManager();
+  showToast(`✓ Transport service "${t.name}" deleted.`);
+}
+
+
+// =============================================================================
+// UNIVERSAL IMAGE UPLOAD FILE HANDLER
+// =============================================================================
+function handleFileUpload(event, targetType) {
+  const files = event.target.files || event.dataTransfer?.files;
+  if (!files || files.length === 0) return;
+
+  Array.from(files).forEach(file => {
+    if (!file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const dataUrl = e.target.result;
+      if (targetType === 'hotel') {
+        if (!window.hotelPhotoUrlsList) window.hotelPhotoUrlsList = [];
+        window.hotelPhotoUrlsList.push(dataUrl);
+        if (typeof renderHotelPhotoUrlFields === 'function') renderHotelPhotoUrlFields();
+      } else if (targetType === 'activity') {
+        if (!window.photoUrlsList) window.photoUrlsList = [];
+        window.photoUrlsList.push(dataUrl);
+        if (typeof renderPhotoUrlsFields === 'function') renderPhotoUrlsFields();
+      } else if (targetType === 'bus') {
+        busPhotoUrlsList.push(dataUrl);
+        renderBusPhotoUrlFields();
+      } else if (targetType === 'transport') {
+        transportPhotoUrlsList.push(dataUrl);
+        renderTransportPhotoUrlFields();
+      }
+      showToast("📷 Image uploaded & added to gallery!");
+    };
+    reader.readAsDataURL(file);
   });
 }

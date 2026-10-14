@@ -98,7 +98,7 @@ export const AdminPanel: React.FC = () => {
           <div className="flex items-center gap-2">
             <span className="text-xl">🛠️</span>
             <div>
-              <h3 className="font-serif text-lg font-black leading-none">TourCartBD Operations Port</h3>
+              <h3 className="font-serif text-lg font-black leading-none">TourCart Operations Port</h3>
               <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mt-1">Ground logistics &amp; backend synchronization</p>
             </div>
           </div>
@@ -142,6 +142,12 @@ export const AdminPanel: React.FC = () => {
               {[
                 { id: 'bookings', label: '📋 Bookings Ledger', count: bookings.length },
                 { id: 'corporate', label: '🏢 Corporate Leads', count: corporateInquiries.length },
+                { id: 'app-registrations', label: '📱 App Pre-Registrations', count: (() => {
+                  try {
+                    const str = localStorage.getItem('tcbd_app_registrations');
+                    return str ? JSON.parse(str).length : 0;
+                  } catch { return 0; }
+                })() },
                 { id: 'analytics', label: '📈 Stats & Analytics', count: null },
                 { id: 'settings', label: '⚙️ Sync Settings', count: null }
               ].map(tab => (
@@ -330,6 +336,65 @@ export const AdminPanel: React.FC = () => {
                   )}
                 </div>
               )}
+
+              {activeAdminTab === 'app-registrations' && (() => {
+                let regs: Array<{ id: string; name: string; email: string; platform: string; createdAt: string }> = [];
+                try {
+                  const str = localStorage.getItem('tcbd_app_registrations');
+                  if (str) regs = JSON.parse(str);
+                } catch (e) { console.error(e); }
+
+                return (
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h4 className="font-serif text-lg font-black text-[#111827]">Mobile App Early Access Signups</h4>
+                        <p className="text-xs text-gray-500">Users who submitted their name &amp; email for mobile app notifications &amp; 15% launch discounts.</p>
+                      </div>
+                      <span className="bg-[#1A7C6E] text-white text-xs font-bold px-3 py-1 rounded-full">
+                        {regs.length} Registered
+                      </span>
+                    </div>
+
+                    {regs.length === 0 ? (
+                      <div className="bg-white p-8 rounded-2xl border border-dashed border-gray-300 text-center text-xs text-gray-500">
+                        No app pre-registrations logged yet. Test by filling out the form on the main page!
+                      </div>
+                    ) : (
+                      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+                        <table className="w-full text-left text-xs border-collapse">
+                          <thead>
+                            <tr className="bg-gray-100 border-b border-gray-200 text-gray-600 font-extrabold uppercase text-[10px]">
+                              <th className="p-3">#</th>
+                              <th className="p-3">Full Name</th>
+                              <th className="p-3">Email Address</th>
+                              <th className="p-3">Platform</th>
+                              <th className="p-3">Registration Date</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-150">
+                            {regs.map((r, i) => (
+                              <tr key={r.id || i} className="hover:bg-gray-50 transition-colors">
+                                <td className="p-3 font-mono font-bold text-gray-400">{i + 1}</td>
+                                <td className="p-3 font-bold text-[#111827]">{r.name}</td>
+                                <td className="p-3 font-mono font-bold text-[#1A7C6E]">{r.email}</td>
+                                <td className="p-3">
+                                  <span className="bg-[#E8F4F2] text-[#1A7C6E] px-2 py-0.5 rounded font-bold uppercase text-[10px]">
+                                    {r.platform || 'Android'}
+                                  </span>
+                                </td>
+                                <td className="p-3 text-gray-500 font-mono text-[11px]">
+                                  {r.createdAt ? new Date(r.createdAt).toLocaleString() : 'Recent'}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
 
               {activeAdminTab === 'analytics' && (
                 <div className="space-y-6">

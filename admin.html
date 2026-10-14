@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TourCartBD Admin — Operations Control Center</title>
+    <title>TourCart Admin — Operations Control Center</title>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -358,42 +358,58 @@
         <section id="section-buses" class="admin-section">
           <div class="section-header">
             <div>
-              <h1 class="section-title">Bus Transport Connections</h1>
-              <p class="section-subtitle">Manage ticket rates of bus booking services</p>
+              <h1 class="section-title">🚌 Bus Classes & Transport Operators</h1>
+              <p class="section-subtitle" id="buses-subtitle-count">Loading bus operators...</p>
             </div>
+            <button class="btn btn-teal" onclick="openBusDrawer()" style="height:40px; padding:0 16px;">
+              ＋ Add New Bus Class
+            </button>
           </div>
-          <div class="content-card">
-            <div class="panel-table-container">
+
+          <!-- SEARCH & FILTER ROW -->
+          <div class="filter-row">
+            <div class="search-input-wrapper">
+              <svg class="search-icon-svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
+              <input type="text" id="buses-search-field" class="search-field" placeholder="Search bus class name, operator or layout..." oninput="currentPageBuses=1; renderBusesTable();" />
+            </div>
+            
+            <select id="filter-bus-status" class="filter-select" onchange="filterBusStatus=this.value; currentPageBuses=1; renderBusesTable();">
+              <option value="all">👁️ All Statuses</option>
+              <option value="active">Active only</option>
+              <option value="inactive">Inactive only</option>
+            </select>
+          </div>
+
+          <!-- BUSES CONTENT DETAILS TABLE -->
+          <div class="content-card" style="padding:0; overflow:hidden;">
+            <div class="panel-table-container" style="border:none; border-radius:0; margin-bottom:0;">
               <table class="panel-table">
                 <thead>
                   <tr>
-                    <th>Category Class</th>
-                    <th>Primary Operator Line</th>
+                    <th>Class Name &amp; Icon</th>
+                    <th>Primary Operators</th>
                     <th>Seat Layout</th>
-                    <th>Ticket Cost</th>
+                    <th>Route Fares Summary</th>
+                    <th>Photos</th>
+                    <th>Status</th>
+                    <th style="width: 120px; text-align: center;">Actions</th>
                   </tr>
                 </thead>
-                <tbody>
-                  <tr>
-                    <td class="cell-bold">AC Chair Coach Line</td>
-                    <td>Hanif Enterprises / Ena Travels</td>
-                    <td>2x2 Business Layout</td>
-                    <td style="color:var(--teal); font-weight:700;">৳1,200</td>
-                  </tr>
-                  <tr>
-                    <td class="cell-bold">VIP Sleeper Cabin Seat</td>
-                    <td>Desh Travels / Green Line Royal</td>
-                    <td>Premium Flat-bed Cabins</td>
-                    <td style="color:var(--teal); font-weight:700;">৳2,200</td>
-                  </tr>
-                  <tr>
-                    <td class="cell-bold">Non-AC Economic express</td>
-                    <td>Shyamoli Paribahan</td>
-                    <td>Standard 2x2 rows</td>
-                    <td style="color:var(--teal); font-weight:700;">৳750</td>
-                  </tr>
+                <tbody id="buses-table-tbody">
+                  <!-- Loaded dynamically by admin_ops.js -->
                 </tbody>
               </table>
+            </div>
+          </div>
+
+          <!-- PAGINATION FOOTER ROW -->
+          <div class="pagination-container">
+            <div class="pagination-info" id="buses-pagination-info">Showing 0 of 0 bus classes</div>
+            <div class="pagination-buttons">
+              <button class="pag-btn" id="buses-page-prev" onclick="currentPageBuses--; renderBusesTable();">⇠ Previous</button>
+              <button class="pag-btn" id="buses-page-next" onclick="currentPageBuses++; renderBusesTable();">Next ⇢</button>
             </div>
           </div>
         </section>
@@ -402,38 +418,68 @@
         <section id="section-transport" class="admin-section">
           <div class="section-header">
             <div>
-              <h1 class="section-title">Local Transport Operators</h1>
-              <p class="section-subtitle">Local ground vehicle logistics services</p>
+              <h1 class="section-title">🚗 Local Ground Transport & Vehicles</h1>
+              <p class="section-subtitle" id="transport-subtitle-count">Loading local transport services...</p>
             </div>
+            <button class="btn btn-teal" onclick="openTransportDrawer()" style="height:40px; padding:0 16px;">
+              ＋ Add New Vehicle Service
+            </button>
           </div>
-          <div class="content-card">
-            <div class="panel-table-container">
+
+          <!-- SEARCH & FILTER ROW -->
+          <div class="filter-row">
+            <div class="search-input-wrapper">
+              <svg class="search-icon-svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
+              <input type="text" id="transport-search-field" class="search-field" placeholder="Search vehicle name, unit or destination..." oninput="currentPageTransport=1; renderTransportTable();" />
+            </div>
+            
+            <select id="filter-transport-dest" class="filter-select" onchange="filterTransportDest=this.value; currentPageTransport=1; renderTransportTable();">
+              <option value="all">📍 All Regions</option>
+              <option value="cox">Cox's Bazar</option>
+              <option value="bandarban">Bandarban</option>
+              <option value="rangamati">Rangamati</option>
+              <option value="khagra">Khagrachhari</option>
+              <option value="ctg">Chattogram</option>
+            </select>
+            
+            <select id="filter-transport-status" class="filter-select" onchange="filterTransportStatus=this.value; currentPageTransport=1; renderTransportTable();">
+              <option value="all">👁️ All Statuses</option>
+              <option value="active">Active only</option>
+              <option value="inactive">Inactive only</option>
+            </select>
+          </div>
+
+          <!-- LOCAL TRANSPORT TABLE -->
+          <div class="content-card" style="padding:0; overflow:hidden;">
+            <div class="panel-table-container" style="border:none; border-radius:0; margin-bottom:0;">
               <table class="panel-table">
                 <thead>
                   <tr>
-                    <th>Vehicle Category</th>
-                    <th>Daily Booking Base Margin</th>
-                    <th>Operational Regions</th>
+                    <th>Vehicle Title &amp; Icon</th>
+                    <th>Region</th>
+                    <th>Capacity &amp; Basis</th>
+                    <th>Selling Price</th>
+                    <th>Original Price</th>
+                    <th>Discount</th>
+                    <th>Status</th>
+                    <th style="width: 120px; text-align: center;">Actions</th>
                   </tr>
                 </thead>
-                <tbody>
-                  <tr>
-                    <td class="cell-bold">Chander Gari (Traditional Mountain Jeep)</td>
-                    <td style="color:var(--coral); font-weight:700;">৳5,500 / Day</td>
-                    <td>Bandarban Peaks, Sajek Valley paths</td>
-                  </tr>
-                  <tr>
-                    <td class="cell-bold">Private Sedan Cruiser (4 Seated AC Car)</td>
-                    <td style="color:var(--coral); font-weight:700;">৳4,800 / Day</td>
-                    <td>Cox's Bazar Airport sightseeing, Marine Drive</td>
-                  </tr>
-                  <tr>
-                    <td class="cell-bold">Electric Eco TomTom (Sleek Auto)</td>
-                    <td style="color:var(--coral); font-weight:700;">৳1,200 / Day</td>
-                    <td>Cox's Bazar local beach town commutes</td>
-                  </tr>
+                <tbody id="transport-table-tbody">
+                  <!-- Loaded dynamically by admin_ops.js -->
                 </tbody>
               </table>
+            </div>
+          </div>
+
+          <!-- PAGINATION FOOTER ROW -->
+          <div class="pagination-container">
+            <div class="pagination-info" id="transport-pagination-info">Showing 0 of 0 transport options</div>
+            <div class="pagination-buttons">
+              <button class="pag-btn" id="transport-page-prev" onclick="currentPageTransport--; renderTransportTable();">⇠ Previous</button>
+              <button class="pag-btn" id="transport-page-next" onclick="currentPageTransport++; renderTransportTable();">Next ⇢</button>
             </div>
           </div>
         </section>
@@ -1023,7 +1069,7 @@
 
             <!-- CARD 6: ABOUT INFORMATION -->
             <div class="content-card" style="padding:20px; display:flex; flex-direction:column; background:#faf9f6;">
-              <h3 style="font-size:15px; font-weight:800; color:var(--dark); margin-bottom:8px; display:flex; align-items:center; gap:8px;">ℹ️ About TourCartBD Admin Ops</h3>
+              <h3 style="font-size:15px; font-weight:800; color:var(--dark); margin-bottom:8px; display:flex; align-items:center; gap:8px;">ℹ️ About TourCart Admin Ops</h3>
               <p style="font-size:12px; color:var(--text-muted); line-height:1.5; margin-bottom:14px;">Build Operations Control Desk — Standalone execution system syncing live into database nodes.</p>
               
               <div style="font-family:var(--font-mono); font-size:11px; color:#475569; display:flex; flex-direction:column; gap:6px; background:#f1faf9; padding:10px; border-radius:6px; border:1px solid #d1edeb;">
@@ -1557,22 +1603,273 @@
     </div>
 
 
+    <!-- ==================== BUS DRAWER PANEL ==================== -->
+    <div id="bus-drawer-overlay" class="drawer-overlay" onclick="closeBusDrawer()"></div>
+    <div id="bus-drawer-panel" class="drawer-panel">
+      <div class="drawer-header">
+        <h3 class="drawer-title" id="bus-drawer-spec-title">＋ Add New Bus Class Specification</h3>
+        <button class="drawer-close-btn" onclick="closeBusDrawer()">✕</button>
+      </div>
+      
+      <div class="drawer-body">
+        <h4 class="form-section-title">1. Essential details</h4>
+        <div class="form-group">
+          <label class="form-label">Bus Class Name <span class="req">*</span></label>
+          <input type="text" id="bus-name" class="form-input-text" placeholder="E.g. VIP Sleeper Berth / Executive Chair" />
+        </div>
+        <div style="display:flex; gap:16px;">
+          <div class="form-group" style="flex:1;">
+            <label class="form-label">Class Icon / Emoji</label>
+            <input type="text" id="bus-icon" class="form-input-text" placeholder="E.g. 🛏️ or 💺 or ❄️" value="🚌" />
+          </div>
+          <div class="form-group" style="flex:1.5;">
+            <label class="form-label">Primary Operator Line <span class="req">*</span></label>
+            <input type="text" id="bus-operators" class="form-input-text" placeholder="E.g. Hanif Enterprises / Desh Travels / Green Line" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Seat Layout &amp; Amenities</label>
+          <input type="text" id="bus-layout" class="form-input-text" placeholder="E.g. 2x1 Deluxe Recliner Seats, Wi-Fi, Water Bottle" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Detailed Description</label>
+          <textarea id="bus-desc" class="form-textarea" rows="3" placeholder="Describe comfort, air conditioning, travel duration, stops..."></textarea>
+        </div>
+
+        <h4 class="form-section-title">2. Route Ticket Rates &amp; Discounts</h4>
+        <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">Set default ticket prices (BDT) and optional original prices / discount badges for each route.</p>
+        
+        <div style="display:flex; flex-direction:column; gap:10px; background:#f8fafc; padding:14px; border-radius:10px; border:1px solid var(--border-color); margin-bottom:16px;">
+          <div style="display:grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap:8px; align-items:center;">
+            <span style="font-size:12px; font-weight:700;">Dhaka ⇆ Cox's Bazar</span>
+            <input type="number" id="bus-price-dhaka-cox" class="form-input-text" placeholder="Selling ৳" />
+            <input type="number" id="bus-prevPrice-dhaka-cox" class="form-input-text" placeholder="Original ৳" />
+            <input type="text" id="bus-label-dhaka-cox" class="form-input-text" placeholder="Badge" />
+          </div>
+          <div style="display:grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap:8px; align-items:center;">
+            <span style="font-size:12px; font-weight:700;">Dhaka ⇆ Bandarban</span>
+            <input type="number" id="bus-price-dhaka-bandarban" class="form-input-text" placeholder="Selling ৳" />
+            <input type="number" id="bus-prevPrice-dhaka-bandarban" class="form-input-text" placeholder="Original ৳" />
+            <input type="text" id="bus-label-dhaka-bandarban" class="form-input-text" placeholder="Badge" />
+          </div>
+          <div style="display:grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap:8px; align-items:center;">
+            <span style="font-size:12px; font-weight:700;">Dhaka ⇆ Rangamati</span>
+            <input type="number" id="bus-price-dhaka-rangamati" class="form-input-text" placeholder="Selling ৳" />
+            <input type="number" id="bus-prevPrice-dhaka-rangamati" class="form-input-text" placeholder="Original ৳" />
+            <input type="text" id="bus-label-dhaka-rangamati" class="form-input-text" placeholder="Badge" />
+          </div>
+          <div style="display:grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap:8px; align-items:center;">
+            <span style="font-size:12px; font-weight:700;">Chattogram ⇆ Cox's Bazar</span>
+            <input type="number" id="bus-price-ctg-cox" class="form-input-text" placeholder="Selling ৳" />
+            <input type="number" id="bus-prevPrice-ctg-cox" class="form-input-text" placeholder="Original ৳" />
+            <input type="text" id="bus-label-ctg-cox" class="form-input-text" placeholder="Badge" />
+          </div>
+          <div style="display:grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap:8px; align-items:center;">
+            <span style="font-size:12px; font-weight:700;">Dhaka ⇆ Chattogram</span>
+            <input type="number" id="bus-price-dhaka-ctg" class="form-input-text" placeholder="Selling ৳" />
+            <input type="number" id="bus-prevPrice-dhaka-ctg" class="form-input-text" placeholder="Original ৳" />
+            <input type="text" id="bus-label-dhaka-ctg" class="form-input-text" placeholder="Badge" />
+          </div>
+        </div>
+
+        <h4 class="form-section-title">3. Photo Gallery &amp; Pictures</h4>
+        <div class="upload-dropzone" id="bus-photos-dropzone" style="margin-bottom:12px;" onclick="document.getElementById('bus-file-input').click()">
+          <div class="upload-dropzone-icon">📷</div>
+          <p class="upload-dropzone-text">Click or drag &amp; drop bus images here</p>
+          <span class="upload-dropzone-sub">Supports image file upload or HTTP photo links</span>
+          <input type="file" id="bus-file-input" accept="image/*" multiple style="display:none;" onchange="handleFileUpload(event, 'bus')" />
+        </div>
+        
+        <div id="bus-photos-repeatable-list" style="margin-bottom:8px;"></div>
+        <button type="button" class="repeatable-btn-add" onclick="addBusPhotoField()">＋ Add photo URL link</button>
+        <div class="photos-preview-grid" id="bus-photos-thumbnails-grid" style="display:none; gap:8px; margin-top:12px;"></div>
+
+        <h4 class="form-section-title">4. Visibility Controls</h4>
+        <div class="toggle-switch-container">
+          <div class="switch-label-block">
+            <span class="switch-title">Active Status</span>
+            <span class="switch-sub">When inactive, bus option is hidden in trip customizer</span>
+          </div>
+          <input type="checkbox" id="bus-sub-active" class="switch-input-element" checked />
+        </div>
+      </div>
+
+      <div class="drawer-footer">
+        <button class="action-btn btn-ghost" onclick="closeBusDrawer()">Cancel</button>
+        <button class="action-btn btn-teal" onclick="handleSaveBusForm()">🔒 Save Bus Specification</button>
+      </div>
+    </div>
+
+
+    <!-- ==================== LOCAL TRANSPORT DRAWER PANEL ==================== -->
+    <div id="transport-drawer-overlay" class="drawer-overlay" onclick="closeTransportDrawer()"></div>
+    <div id="transport-drawer-panel" class="drawer-panel">
+      <div class="drawer-header">
+        <h3 class="drawer-title" id="transport-drawer-spec-title">＋ Add New Local Transport Service</h3>
+        <button class="drawer-close-btn" onclick="closeTransportDrawer()">✕</button>
+      </div>
+      
+      <div class="drawer-body">
+        <h4 class="form-section-title">1. Essential details</h4>
+        <div class="form-group">
+          <label class="form-label">Vehicle Service Name <span class="req">*</span></label>
+          <input type="text" id="transport-name" class="form-input-text" placeholder="E.g. Chander Gari — Traditional Mountain Jeep" />
+        </div>
+        <div style="display:flex; gap:16px;">
+          <div class="form-group" style="flex:1;">
+            <label class="form-label">Destination Region <span class="req">*</span></label>
+            <select id="transport-dest" class="form-select-box">
+              <option value="">Select Region</option>
+              <option value="cox">Cox's Bazar</option>
+              <option value="bandarban">Bandarban</option>
+              <option value="rangamati">Rangamati</option>
+              <option value="khagra">Khagrachhari</option>
+              <option value="ctg">Chattogram</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label class="form-label">Vehicle Icon</label>
+            <input type="text" id="transport-icon" class="form-input-text" placeholder="E.g. 🚙 or 🚗 or 🛺" value="🚗" />
+          </div>
+        </div>
+
+        <h4 class="form-section-title">2. Pricing &amp; Rental Basis</h4>
+        <div style="display:flex; gap:12px; margin-bottom:12px;">
+          <div class="form-group" style="flex:1;">
+            <label class="form-label">Selling Price (৳ BDT) <span class="req">*</span></label>
+            <input type="number" id="transport-price" class="form-input-text" placeholder="E.g. 4500" />
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label class="form-label">Original Price (optional)</label>
+            <input type="number" id="transport-prevPrice" class="form-input-text" placeholder="E.g. 5500" />
+          </div>
+        </div>
+        <div style="display:flex; gap:12px; margin-bottom:12px;">
+          <div class="form-group" style="flex:1;">
+            <label class="form-label">Rental Unit / Basis <span class="req">*</span></label>
+            <input type="text" id="transport-unit" class="form-input-text" placeholder="E.g. per vehicle/day or per person" />
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label class="form-label">Promo Discount Label</label>
+            <input type="text" id="transport-discountLabel" class="form-input-text" placeholder="E.g. POPULAR or 10% OFF" />
+          </div>
+        </div>
+
+        <h4 class="form-section-title">3. Capacity &amp; Specs</h4>
+        <div style="display:flex; gap:12px; margin-bottom:12px;">
+          <div class="form-group" style="flex:1;">
+            <label class="form-label">Passenger Capacity</label>
+            <input type="text" id="transport-capacity" class="form-input-text" placeholder="E.g. Up to 12 passengers" />
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label class="form-label">Operator / Partner Name</label>
+            <input type="text" id="transport-operators" class="form-input-text" placeholder="E.g. Bandarban Hill Jeep Association" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description &amp; Route Coverage</label>
+          <textarea id="transport-desc" class="form-textarea" rows="3" placeholder="Describe vehicle condition, AC/Non-AC, mountain terrain suitability..."></textarea>
+        </div>
+
+        <h4 class="form-section-title">4. Photos &amp; Pictures</h4>
+        <div class="upload-dropzone" id="transport-photos-dropzone" style="margin-bottom:12px;" onclick="document.getElementById('transport-file-input').click()">
+          <div class="upload-dropzone-icon">📷</div>
+          <p class="upload-dropzone-text">Click or drag &amp; drop vehicle images here</p>
+          <span class="upload-dropzone-sub">Upload image files or add photo links below</span>
+          <input type="file" id="transport-file-input" accept="image/*" multiple style="display:none;" onchange="handleFileUpload(event, 'transport')" />
+        </div>
+        
+        <div id="transport-photos-repeatable-list" style="margin-bottom:8px;"></div>
+        <button type="button" class="repeatable-btn-add" onclick="addTransportPhotoField()">＋ Add photo URL link</button>
+        <div class="photos-preview-grid" id="transport-photos-thumbnails-grid" style="display:none; gap:8px; margin-top:12px;"></div>
+
+        <h4 class="form-section-title">5. Visibility Controls</h4>
+        <div class="toggle-switch-container">
+          <div class="switch-label-block">
+            <span class="switch-title">Active Status</span>
+            <span class="switch-sub">When inactive, transport option is hidden in trip customizer</span>
+          </div>
+          <input type="checkbox" id="transport-sub-active" class="switch-input-element" checked />
+        </div>
+      </div>
+
+      <div class="drawer-footer">
+        <button class="action-btn btn-ghost" onclick="closeTransportDrawer()">Cancel</button>
+        <button class="action-btn btn-teal" onclick="handleSaveTransportForm()">🔒 Save Transport Specification</button>
+      </div>
+    </div>
+
+
     <!-- ==================== LOGICS CONTROLS INTEGRATION ==================== -->
     <script>
-      // Authentication checking state
+      // Authentication & Security State
       let adminLoggedIn = false;
+      let loginAttempts = 0;
+      let lockoutUntil = 0;
+      const DEFAULT_PWD_HASH = "d3b84db57e3f8a0050ee637d7dd5e42426bb9ff5d6f82725e227928cbddcb487"; // SHA-256 for TourCart@2026
 
-      function attemptSignIn() {
+      async function hashText(str) {
+        if (!window.crypto || !window.crypto.subtle) {
+          // Fallback simple hash for unsupported environments
+          let hash = 0;
+          for (let i = 0; i < str.length; i++) {
+            hash = ((hash << 5) - hash) + str.charCodeAt(i);
+            hash |= 0;
+          }
+          return "fallback-" + Math.abs(hash);
+        }
+        const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+        return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+      }
+
+      function escapeHtml(str) {
+        if (str === null || str === undefined) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+
+      function sanitizeUrl(url) {
+        if (!url || typeof url !== 'string') return '';
+        const trimmed = url.trim();
+        if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('data:image/') || trimmed.startsWith('/')) {
+          return escapeHtml(trimmed);
+        }
+        return '';
+      }
+
+      async function attemptSignIn() {
+        const now = Date.now();
+        if (now < lockoutUntil) {
+          const remainingSec = Math.ceil((lockoutUntil - now) / 1000);
+          showToast(`🔒 Account temporarily locked due to failed attempts. Try again in ${remainingSec}s.`);
+          return;
+        }
+
         const pwdInput = document.getElementById('adminPassword');
         const errorMsg = document.getElementById('login-error-msg');
         const loginCard = document.getElementById('login-card');
         const entered = pwdInput.value;
         
-        const CORRECT_PASSWORD = localStorage.getItem('tcbd_admin_pwd') || 'TourCart@2026';
+        if (!entered) {
+          showToast("⚠️ Please enter admin password.");
+          return;
+        }
+
+        const enteredHash = await hashText(entered);
+        const storedHash = localStorage.getItem('tcbd_admin_pwd_hash') || DEFAULT_PWD_HASH;
         
-        if (entered === CORRECT_PASSWORD) {
+        if (enteredHash === storedHash) {
           adminLoggedIn = true;
-          localStorage.setItem('tcbd_admin_authorized', 'true');
+          loginAttempts = 0;
+          pwdInput.value = "";
+          
+          // Store encrypted session token with expiration timestamp (8 hours)
+          const sessionExpiry = Date.now() + (8 * 60 * 60 * 1000);
+          localStorage.setItem('tcbd_admin_session', JSON.stringify({ authorized: true, expiresAt: sessionExpiry }));
           
           document.getElementById('login-screen').style.display = 'none';
           document.getElementById('admin-layout').style.display = 'grid';
@@ -1581,14 +1878,25 @@
           renderDashboardMetrics();
           renderActivitiesTable();
           renderHotelsTable();
+          renderBusesTable();
+          renderTransportTable();
           renderBookingsArchive();
           
           showToast("🔓 Access Granted. Operations Console Loaded.");
         } else {
+          loginAttempts++;
           pwdInput.value = "";
           errorMsg.style.display = "block";
           loginCard.classList.add('shake');
-          showToast("❌ Incorrect Password!");
+          
+          if (loginAttempts >= 5) {
+            lockoutUntil = Date.now() + (60 * 1000); // 60s lockout
+            showToast("⛔ 5 Failed Attempts! Console locked for 60 seconds.");
+            loginAttempts = 0;
+          } else {
+            showToast(`❌ Incorrect Password! Attempt ${loginAttempts}/5`);
+          }
+
           setTimeout(() => {
             loginCard.classList.remove('shake');
           }, 400);
@@ -1597,12 +1905,26 @@
 
       function logoutAdmin() {
         adminLoggedIn = false;
-        localStorage.removeItem('tcbd_admin_authorized');
+        localStorage.removeItem('tcbd_admin_session');
         document.getElementById('login-screen').style.display = 'flex';
         document.getElementById('admin-layout').style.display = 'none';
         document.getElementById('adminPassword').value = "";
         document.getElementById('login-error-msg').style.display = "none";
         showToast("🔒 Logged out of Operations Panel");
+      }
+
+      function checkSessionValidity() {
+        try {
+          const rawSession = localStorage.getItem('tcbd_admin_session');
+          if (!rawSession) return false;
+          const session = JSON.parse(rawSession);
+          if (session && session.authorized && session.expiresAt > Date.now()) {
+            return true;
+          }
+        } catch(e) {
+          console.warn("Invalid session data", e);
+        }
+        return false;
       }
 
       function setSection(sectionId) {
@@ -1625,6 +1947,10 @@
           renderActivitiesTable();
         } else if (sectionId === 'hotels') {
           renderHotelsTable();
+        } else if (sectionId === 'buses') {
+          renderBusesTable();
+        } else if (sectionId === 'transport') {
+          renderTransportTable();
         } else if (sectionId === 'bookings') {
           renderBookingsArchive();
         } else if (sectionId === 'prices') {
@@ -1648,6 +1974,8 @@
         renderDashboardMetrics();
         renderActivitiesTable();
         renderHotelsTable();
+        renderBusesTable();
+        renderTransportTable();
         renderBookingsArchive();
         
         // Refresh Price, Discount, and Analytics managers if active
@@ -1669,12 +1997,12 @@
         }
         
         const clockSpan = document.getElementById('lastRefreshTime');
-         const d = new Date();
-         let h = d.getHours();
-         let m = d.getMinutes();
-         m = m < 10 ? '0' + m : m;
-         clockSpan.innerText = `Updated at ${h > 12 ? h-12 : h}:${m} ${h >= 12 ? 'PM':'AM'}`;
-         showToast("🔄 Persistent local database synced.");
+        const d = new Date();
+        let h = d.getHours();
+        let m = d.getMinutes();
+        m = m < 10 ? '0' + m : m;
+        clockSpan.innerText = `Updated at ${h > 12 ? h-12 : h}:${m} ${h >= 12 ? 'PM':'AM'}`;
+        showToast("🔄 Persistent local database synced.");
       }
 
       // HASH ROUTER
@@ -1682,7 +2010,7 @@
         const hash = window.location.hash;
         if (!hash) return;
         const target = hash.replace('#', '');
-        const accepted = ['dashboard', 'activities', 'hotels', 'bookings', 'prices', 'discounts', 'corporate', 'analytics', 'settings', 'password'];
+        const accepted = ['dashboard', 'activities', 'hotels', 'buses', 'transport', 'bookings', 'prices', 'discounts', 'corporate', 'analytics', 'settings', 'password'];
         if (accepted.includes(target)) {
           setSection(target);
         }
@@ -1690,24 +2018,32 @@
 
       window.addEventListener('hashchange', checkHashRoute);
 
-      // Auto sign-in on load
+      // Session auto-check on load
       window.addEventListener('load', () => {
-        if (localStorage.getItem('tcbd_admin_authorized') === 'true') {
-          const CORRECT_PASSWORD = localStorage.getItem('tcbd_admin_pwd') || 'TourCart@2026';
-          document.getElementById('adminPassword').value = CORRECT_PASSWORD;
-          attemptSignIn();
+        if (checkSessionValidity()) {
+          adminLoggedIn = true;
+          document.getElementById('login-screen').style.display = 'none';
+          document.getElementById('admin-layout').style.display = 'grid';
+          loadDatabase();
+          renderDashboardMetrics();
+          renderActivitiesTable();
+          renderHotelsTable();
+          renderBusesTable();
+          renderTransportTable();
+          renderBookingsArchive();
           checkHashRoute();
         }
       });
 
-      function updateAdminPassword() {
+      async function updateAdminPassword() {
         const newPass = document.getElementById('newAdminPassword').value.trim();
-        if (newPass === "") {
-          showToast("⚠️ Password cannot be blank!");
+        if (newPass.length < 6) {
+          showToast("⚠️ Password must be at least 6 characters long!");
           return;
         }
-        localStorage.setItem('tcbd_admin_pwd', newPass);
-        showToast("✓ Admin Authentication Password updated successfully!");
+        const newHash = await hashText(newPass);
+        localStorage.setItem('tcbd_admin_pwd_hash', newHash);
+        showToast("✓ Admin Authentication Password updated securely!");
         document.getElementById('newAdminPassword').value = "";
       }
 
@@ -1717,7 +2053,7 @@
         
         const toast = document.createElement('div');
         toast.className = 'toast-popup-box';
-        toast.innerHTML = message;
+        toast.innerHTML = escapeHtml(message);
         container.appendChild(toast);
         
         setTimeout(() => {
@@ -1729,7 +2065,9 @@
           toast.style.opacity = '0';
           toast.style.transform = 'translateY(-10px)';
           setTimeout(() => {
-            container.removeChild(toast);
+            if (toast.parentNode === container) {
+              container.removeChild(toast);
+            }
           }, 300);
         }, 3000);
       }

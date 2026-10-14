@@ -270,7 +270,21 @@ export const TourCartProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const saved = localStorage.getItem('tcbd_hotels');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // Ensure new fields like image and mapUrl are merged from default HOTELS
+          const merged = parsed.map((item: Hotel) => {
+            const defaultItem = HOTELS.find(h => h.id === item.id);
+            return {
+              ...defaultItem,
+              ...item,
+              image: item.image || defaultItem?.image || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1000&q=80',
+              mapUrl: item.mapUrl || defaultItem?.mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.name)}`
+            };
+          });
+          localStorage.setItem('tcbd_hotels', JSON.stringify(merged));
+          return merged;
+        }
       } catch (e) {
         console.error("Failed to parse tcbd_hotels:", e);
       }
@@ -283,11 +297,25 @@ export const TourCartProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const saved = localStorage.getItem('tcbd_hotels');
     if (saved) {
       try {
-        setHotels(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const merged = parsed.map((item: Hotel) => {
+            const defaultItem = HOTELS.find(h => h.id === item.id);
+            return {
+              ...defaultItem,
+              ...item,
+              image: item.image || defaultItem?.image || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1000&q=80',
+              mapUrl: item.mapUrl || defaultItem?.mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.name)}`
+            };
+          });
+          setHotels(merged);
+          return;
+        }
       } catch (e) {
         console.error("Failed to parse tcbd_hotels on refresh:", e);
       }
     }
+    setHotels(HOTELS);
   };
 
   const [busClasses, setBusClasses] = useState<typeof BUS_TYPES>(() => {

@@ -119,7 +119,7 @@ export const CheckoutModal: React.FC = () => {
   // Generate WhatsApp text
   const getWhatsAppLink = () => {
     if (!lastSubmitPayload) return '';
-    const text = `Hi TourCartBD team! I just built a custom tour itinerary on your portal. 
+    const text = `Hi TourCart team! I just built a custom tour itinerary on your portal. 
 *Booking Ref*: ${lastSubmitPayload.ref}
 *Lead Name*: ${lastSubmitPayload.name}
 *Phone*: ${lastSubmitPayload.phone}

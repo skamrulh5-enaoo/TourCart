@@ -11,6 +11,11 @@ import { DetailModal } from './components/DetailModal';
 import { CheckoutModal } from './components/CheckoutModal';
 import { CorporateModal } from './components/CorporateModal';
 import { AdminPanel } from './components/AdminPanel';
+import { AppRegistrationSection } from './components/AppRegistrationSection';
+import { DestinationGuidesSection } from './components/DestinationGuidesSection';
+import { AEOContentSection } from './components/AEOContentSection';
+import { BreadcrumbsNav } from './components/BreadcrumbsNav';
+import { SEOHead } from './components/SEOHead';
 import { FloatingCart } from './components/FloatingCart';
 import { Mail, Phone, Heart, Calendar } from 'lucide-react';
 
@@ -92,7 +97,7 @@ const DashboardFooter: React.FC = () => {
       <div className="max-w-7xl mx-auto h-px bg-gray-800 my-10"></div>
 
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-[11px] text-gray-500 font-bold uppercase tracking-wider">
-        <p>© {new Date().getFullYear()} TourCartBD. All rights reserved on-ground.</p>
+        <p>© {new Date().getFullYear()} TourCart. All rights reserved on-ground.</p>
         <p className="flex items-center gap-1.5 font-sans">
           Crafted for premium Southeast Bangladesh travel curations &nbsp;·&nbsp;
           <button 
@@ -110,7 +115,14 @@ const DashboardFooter: React.FC = () => {
 const MainLayout: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#F5EFE6] select-none text-[#111827] flex flex-col justify-between selection:bg-[#1A7C6E]/20 relative">
+      <SEOHead
+        title="TourCart — Custom Travel Itinerary Builder for Southeast Bangladesh"
+        description="Build custom tour packages across Cox's Bazar, Bandarban, Rangamati, Khagrachhari, and Chattogram. Transparent zero-markup prices for hotels, activities, bus tickets, and private transfers."
+        canonicalUrl="https://app.tourcartbd.com/"
+      />
+      
       <Navbar />
+      <BreadcrumbsNav currentSection="Custom Tour Itinerary Builder" />
       
       {/* Scrollable grid layout sections */}
       <main className="flex-1">
@@ -120,6 +132,9 @@ const MainLayout: React.FC = () => {
         <HotelsSection />
         <BusTransportSection />
         <LocalTransportSection />
+        <DestinationGuidesSection />
+        <AEOContentSection />
+        <AppRegistrationSection />
       </main>
 
       <DashboardFooter />
